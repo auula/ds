@@ -3,21 +3,24 @@ package List
 
 import "errors"
 
+// Element 是节点里面元素
 type Element struct {
 	value interface{} `json:'value'`
 }
 
+// Node 是链表的节点
 type Node struct {
 	ele  *Element `json:'element'`
 	next *Node    `json:'next_node'`
 }
 
+// List 链表的抽象接口
 type List interface {
-	Get(index int) *Node
-	Remove(index int)
-	Insertion(index int, ele *Element) error
-	Range(channel chan *Node)
-	Add(ele *Element)
+	Get(index int) *Node                     // 通过下标获取node
+	Remove(index int)                        // 通过下标移除
+	Insertion(index int, ele *Element) error // 通过下标插入
+	Range(channel chan *Node)                // 插入channel遍历
+	Add(ele *Element)                        // 添加元素
 }
 
 type LinkedList struct {
@@ -25,6 +28,7 @@ type LinkedList struct {
 	size       int
 }
 
+// New create a LinkedList
 func New() *LinkedList {
 	return &LinkedList{
 		head: nil,
