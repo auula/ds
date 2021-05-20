@@ -1,2 +1,2 @@
-# structure
-common data structures implement by golang.
+# data structure
+`ds`common data structures implement by golang.
