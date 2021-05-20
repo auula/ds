@@ -23,7 +23,7 @@ func New() *LinkedList {
 	}
 }
 
-func (ldl *LinkedList) Push(value interface{}) {
+func (ldl *LinkedList) Add(value interface{}) {
 	node := &Node{
 		Data: value,
 		Next: nil,

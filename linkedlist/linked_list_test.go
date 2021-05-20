@@ -14,12 +14,12 @@ func TestNew(t *testing.T) {
 	channel := make(chan *Node)
 
 	linkedList := New()
-	linkedList.Push(1)
+	linkedList.Add(1)
 	linkedList.Insert(2, 2)
-	linkedList.Push(2)
-	linkedList.Push(3)
-	linkedList.Push(4)
-	linkedList.Push(5)
+	linkedList.Add(2)
+	linkedList.Add(3)
+	linkedList.Add(4)
+	linkedList.Add(5)
 
 	linkedList.Remove(5)
 
