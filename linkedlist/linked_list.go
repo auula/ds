@@ -4,8 +4,8 @@ package linkedlist
 
 // Node of LinkedList
 type Node struct {
-	Data interface{}
-	Next *Node
+	Element interface{}
+	Next    *Node
 }
 
 // LinkedList data structure
@@ -25,8 +25,8 @@ func New() *LinkedList {
 
 func (ldl *LinkedList) Add(value interface{}) {
 	node := &Node{
-		Data: value,
-		Next: nil,
+		Element: value,
+		Next:    nil,
 	}
 	// 移动指针
 	pointer := ldl.Head
@@ -41,8 +41,8 @@ func (ldl *LinkedList) Add(value interface{}) {
 func (ldl *LinkedList) Insert(index int, value interface{}) {
 
 	node := &Node{
-		Data: value,
-		Next: nil,
+		Element: value,
+		Next:    nil,
 	}
 
 	// 插入位置和大小一致说明是尾巴的

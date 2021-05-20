@@ -25,10 +25,10 @@ func TestNew(t *testing.T) {
 
 	linkedList.Channel(channel)
 
-	t.Log("linkedList last node value :", linkedList.Last.Data)
+	t.Log("linkedList last node value :", linkedList.Last.Element)
 	t.Log("linkedList  node size :", linkedList.Size)
 	t.Log("linkedList  node  index 3  :", linkedList.Get(3))
 	for node := range channel {
-		t.Log(node.Data)
+		t.Log(node.Element)
 	}
 }
