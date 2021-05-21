@@ -31,6 +31,6 @@ func TestNew(t *testing.T) {
 	t.Log("linkedList size :", linkedList.size)
 	t.Log("linkedList  node  index 3  :", linkedList.Get(2))
 	for node := range channel {
-		t.Log(node.value)
+		t.Log(node.Value)
 	}
 }
