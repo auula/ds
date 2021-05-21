@@ -52,6 +52,13 @@ func (dl *DoublyLinkedList) Insertion(index int, value interface{}) {
 }
 
 func (dl *DoublyLinkedList) Get(index int) Element {
+	if dl.err != nil {
+		return nil
+	}
+	if index < 0 || index > dl.size {
+		dl.err = fmt.Errorf("index out of bounds, by Get(%d)", index)
+		return nil
+	}
 	node := dl.head
 	for i := 0; i < index; i++ {
 		node = node.Next
