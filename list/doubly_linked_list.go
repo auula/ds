@@ -3,18 +3,15 @@
 // Author: SDing <deen.job@qq.com>
 // Date: 2021/5/21 - 3:13 下午 - UTC/GMT+08:00
 
-package List
+package list
 
-import "fmt"
-
-type DulNode struct {
-	Perv  *DulNode    `json:"perv_node"`
-	Next  *DulNode    `json:"next_node"`
-	Value interface{} `json:"value"`
-}
+import (
+	"fmt"
+	"github.com/higker/ds"
+)
 
 type DoublyLinkedList struct {
-	head, last *DulNode
+	head, last *ds.DulNode
 	size       int
 	err        error
 }
@@ -29,7 +26,7 @@ func (dl *DoublyLinkedList) Insertion(index int, value interface{}) {
 		dl.err = fmt.Errorf("index out of bounds, by Insertion(%d,%s)", index, value)
 		return
 	}
-	node := &DulNode{Value: value}
+	node := &ds.DulNode{Value: value}
 	if dl.size == 0 {
 		dl.head = node
 		dl.last = node
@@ -43,7 +40,7 @@ func (dl *DoublyLinkedList) Insertion(index int, value interface{}) {
 		dl.last.Next = node
 		dl.last = node
 	} else {
-		pervNode := dl.Get(index - 1).(*DulNode)
+		pervNode := dl.Get(index - 1).(*ds.DulNode)
 		node.Perv = pervNode
 		node.Next = pervNode.Next
 		pervNode.Next = node
@@ -51,7 +48,7 @@ func (dl *DoublyLinkedList) Insertion(index int, value interface{}) {
 	dl.size++
 }
 
-func (dl *DoublyLinkedList) Get(index int) Element {
+func (dl *DoublyLinkedList) Get(index int) ds.Element {
 	if dl.err != nil {
 		return nil
 	}
@@ -84,13 +81,13 @@ func (dl *DoublyLinkedList) Remove(index int) {
 		perv.Next = nil
 		dl.last = perv
 	} else {
-		pervNode := dl.Get(index - 1).(*DulNode)
+		pervNode := dl.Get(index - 1).(*ds.DulNode)
 		pervNode.Next = pervNode.Next.Next
 	}
 	dl.size--
 }
 
-func (dl *DoublyLinkedList) Range(channel chan Element) {
+func (dl *DoublyLinkedList) Range(channel chan ds.Element) {
 	node := dl.head
 	go func() {
 		for node != nil {
@@ -102,7 +99,7 @@ func (dl *DoublyLinkedList) Range(channel chan Element) {
 }
 
 func (dl *DoublyLinkedList) Add(value interface{}) {
-	node := &DulNode{Value: value}
+	node := &ds.DulNode{Value: value}
 	if dl.size == 0 {
 		dl.head = node
 		dl.last = node
@@ -112,11 +109,6 @@ func (dl *DoublyLinkedList) Add(value interface{}) {
 		dl.last = node
 	}
 	dl.size++
-}
-
-func (n *DulNode) Val() interface{} {
-	// impl element interface
-	return n.Value
 }
 
 func (dl *DoublyLinkedList) Try() bool {

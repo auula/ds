@@ -3,7 +3,7 @@
 // Author: SDing <deen.job@qq.com>
 // Date: 2021/5/21 - 4:19 下午 - UTC/GMT+08:00
 
-package List
+package list
 
 import (
 	"testing"

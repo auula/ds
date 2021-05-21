@@ -1,31 +1,22 @@
 // linkedList data structure
-package List
+package list
 
 import (
 	"fmt"
+	"github.com/higker/ds"
 )
-
-type Element interface {
-	Val() interface{}
-}
-
-// Node 是链表的节点
-type Node struct {
-	Value interface{} `json:"value"`
-	Next  *Node       `json:"next_node"`
-}
 
 // List 链表的抽象接口
 type List interface {
-	Get(index int) Element                  // 通过下标获取node
+	Get(index int) ds.Element               // 通过下标获取node
 	Remove(index int)                       // 通过下标移除
 	Insertion(index int, value interface{}) // 通过下标插入
-	Range(channel chan Element)             // 插入channel遍历
+	Range(channel chan ds.Element)          // 插入channel遍历
 	Add(value interface{})                  // 添加元素
 }
 
 type LinkedList struct {
-	head, last *Node
+	head, last *ds.Node
 	size       int
 	err        error
 }
@@ -51,7 +42,7 @@ func (list *LinkedList) Insertion(index int, value interface{}) {
 		return
 	}
 
-	node := &Node{Value: value, Next: nil}
+	node := &ds.Node{Value: value, Next: nil}
 	if list.size == 0 {
 		// 空链表
 		list.head = node
@@ -65,7 +56,7 @@ func (list *LinkedList) Insertion(index int, value interface{}) {
 		list.last = node
 	} else {
 		// 找到3个元素中前面的那个节点
-		perv := list.Get(index - 1).(*Node)
+		perv := list.Get(index - 1).(*ds.Node)
 		// 把插入节点的next指向原理位置的下一个那块next
 		node.Next = perv.Next
 		// 前面next指向插入的
@@ -75,7 +66,7 @@ func (list *LinkedList) Insertion(index int, value interface{}) {
 
 }
 
-func (list *LinkedList) Get(index int) Element {
+func (list *LinkedList) Get(index int) ds.Element {
 	if list.err != nil {
 		return nil
 	}
@@ -104,10 +95,10 @@ func (list *LinkedList) Remove(index int) {
 		next := list.head.Next
 		list.head = next
 	} else if index == list.size {
-		perv := list.Get(list.size - 1).(*Node)
+		perv := list.Get(list.size - 1).(*ds.Node)
 		list.last = perv
 	} else {
-		perv := list.Get(index - 1).(*Node)
+		perv := list.Get(index - 1).(*ds.Node)
 		// 移除中间的那个
 		perv.Next = perv.Next.Next
 	}
@@ -115,7 +106,7 @@ func (list *LinkedList) Remove(index int) {
 
 }
 
-func (list *LinkedList) Range(channel chan Element) {
+func (list *LinkedList) Range(channel chan ds.Element) {
 	node := list.head
 	go func() {
 		for node != nil {
@@ -127,7 +118,7 @@ func (list *LinkedList) Range(channel chan Element) {
 }
 
 func (list *LinkedList) Add(value interface{}) {
-	node := &Node{Value: value}
+	node := &ds.Node{Value: value}
 	if list.size == 0 {
 		list.head = node
 		list.last = node
@@ -136,11 +127,6 @@ func (list *LinkedList) Add(value interface{}) {
 		list.last = node
 	}
 	list.size++
-}
-
-func (n *Node) Val() interface{} {
-	// impl element interface
-	return n.Value
 }
 
 func (list *LinkedList) Try() bool {
