@@ -12,7 +12,7 @@ import (
 // go test -v --run=TestNew
 func TestNew(t *testing.T) {
 
-	channel := make(chan *Node)
+	channel := make(chan Element)
 
 	linkedList := New()
 	linkedList.Add(1)
@@ -25,12 +25,17 @@ func TestNew(t *testing.T) {
 
 	linkedList.Range(channel)
 
-	linkedList.Remove(3)
+	//linkedList.Remove(3)
 
 	t.Log("linkedList last node value :", linkedList.last)
 	t.Log("linkedList size :", linkedList.size)
 	t.Log("linkedList  node  index 3  :", linkedList.Get(2))
+
+	if linkedList.Try() {
+		t.Error(linkedList.Error())
+	}
+
 	for node := range channel {
-		t.Log(node.Value)
+		t.Log(node.Val())
 	}
 }

@@ -1,7 +1,13 @@
 // linkedList data structure
 package List
 
-import "errors"
+import (
+	"fmt"
+)
+
+type Element interface {
+	Val() interface{}
+}
 
 // Node 是链表的节点
 type Node struct {
@@ -11,16 +17,17 @@ type Node struct {
 
 // List 链表的抽象接口
 type List interface {
-	Get(index int) *Node                          // 通过下标获取node
-	Remove(index int)                             // 通过下标移除
-	Insertion(index int, value interface{}) error // 通过下标插入
-	Range(channel chan *Node)                     // 插入channel遍历
-	Add(value interface{})                        // 添加元素
+	Get(index int) Element                  // 通过下标获取node
+	Remove(index int)                       // 通过下标移除
+	Insertion(index int, value interface{}) // 通过下标插入
+	Range(channel chan Element)             // 插入channel遍历
+	Add(value interface{})                  // 添加元素
 }
 
 type LinkedList struct {
 	head, last *Node
 	size       int
+	err        error
 }
 
 // New create a LinkedList
@@ -32,17 +39,25 @@ func New() *LinkedList {
 	}
 }
 
-func (list *LinkedList) Insertion(index int, value interface{}) error {
-	if index < 0 || index > list.size {
-		return errors.New("index out of bounds")
+func (list *LinkedList) Insertion(index int, value interface{}) {
+
+	// 检查err 如果有err了这个程序不往下执行
+	if list.err != nil {
+		return
 	}
+
+	if index < 0 || index > list.size {
+		list.err = fmt.Errorf("index out of bounds, by Insertion(%d,%s)", index, value)
+		return
+	}
+
 	node := &Node{Value: value, Next: nil}
 	if list.size == 0 {
 		// 空链表
 		list.head = node
 		list.last = node
 	} else if index == 0 {
-		// 追加插入
+		// 头部插入
 		node.Next = list.head
 		list.head = node
 	} else if list.size == index {
@@ -50,17 +65,24 @@ func (list *LinkedList) Insertion(index int, value interface{}) error {
 		list.last = node
 	} else {
 		// 找到3个元素中前面的那个节点
-		perv := list.Get(index - 1)
+		perv := list.Get(index - 1).(*Node)
 		// 把插入节点的next指向原理位置的下一个那块next
 		node.Next = perv.Next
 		// 前面next指向插入的
 		perv.Next = node
 	}
 	list.size++
-	return nil
+
 }
 
-func (list *LinkedList) Get(index int) *Node {
+func (list *LinkedList) Get(index int) Element {
+	if list.err != nil {
+		return nil
+	}
+	if index < 0 || index > list.size {
+		list.err = fmt.Errorf("index out of bounds, by Get(%d)", index)
+		return nil
+	}
 	node := list.head
 	for i := 0; i < index; i++ {
 		node = node.Next
@@ -70,23 +92,30 @@ func (list *LinkedList) Get(index int) *Node {
 
 func (list *LinkedList) Remove(index int) {
 
+	if list.err != nil {
+		return
+	}
+	if index < 0 || index > list.size {
+		list.err = fmt.Errorf("index out of bounds, by Remove(%d)", index)
+		return
+	}
+
 	if index == 0 {
 		next := list.head.Next
 		list.head = next
 	} else if index == list.size {
-		perv := list.Get(list.size - 1)
+		perv := list.Get(list.size - 1).(*Node)
 		list.last = perv
 	} else {
-		perv := list.Get(index - 1)
+		perv := list.Get(index - 1).(*Node)
 		// 移除中间的那个
-		next := perv.Next.Next
-		perv.Next = next
+		perv.Next = perv.Next.Next
 	}
 	list.size--
 
 }
 
-func (list *LinkedList) Range(channel chan *Node) {
+func (list *LinkedList) Range(channel chan Element) {
 	node := list.head
 	go func() {
 		for node != nil {
@@ -107,4 +136,17 @@ func (list *LinkedList) Add(value interface{}) {
 		list.last = node
 	}
 	list.size++
+}
+
+func (n *Node) Val() interface{} {
+	// impl element interface
+	return n.Value
+}
+
+func (list *LinkedList) Try() bool {
+	return list.err != nil
+}
+
+func (list *LinkedList) Error() string {
+	return list.err.Error()
 }
