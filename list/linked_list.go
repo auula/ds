@@ -3,24 +3,19 @@ package List
 
 import "errors"
 
-// Element 是节点里面元素
-type Element struct {
-	value interface{} `json:'value'`
-}
-
 // Node 是链表的节点
 type Node struct {
-	ele  *Element `json:'element'`
-	next *Node    `json:'next_node'`
+	value interface{} `json:'value'`
+	next  *Node       `json:'next_node'`
 }
 
 // List 链表的抽象接口
 type List interface {
-	Get(index int) *Node                     // 通过下标获取node
-	Remove(index int)                        // 通过下标移除
-	Insertion(index int, ele *Element) error // 通过下标插入
-	Range(channel chan *Node)                // 插入channel遍历
-	Add(ele *Element)                        // 添加元素
+	Get(index int) *Node                          // 通过下标获取node
+	Remove(index int)                             // 通过下标移除
+	Insertion(index int, value interface{}) error // 通过下标插入
+	Range(channel chan *Node)                     // 插入channel遍历
+	Add(value interface{})                        // 添加元素
 }
 
 type LinkedList struct {
@@ -37,11 +32,11 @@ func New() *LinkedList {
 	}
 }
 
-func (list *LinkedList) Insertion(index int, ele *Element) error {
+func (list *LinkedList) Insertion(index int, value interface{}) error {
 	if index < 0 || index > list.size {
 		return errors.New("index out of bounds")
 	}
-	node := &Node{ele: ele, next: nil}
+	node := &Node{value: value, next: nil}
 	if list.size == 0 {
 		// 空链表
 		list.head = node
@@ -102,8 +97,8 @@ func (list *LinkedList) Range(channel chan *Node) {
 	}()
 }
 
-func (list *LinkedList) Add(ele *Element) {
-	node := &Node{ele: ele}
+func (list *LinkedList) Add(value interface{}) {
+	node := &Node{value: value}
 	if list.size == 0 {
 		list.head = node
 		list.last = node
