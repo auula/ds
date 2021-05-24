@@ -5,6 +5,7 @@ import (
 	"github.com/higker/ds"
 )
 
+// Stack FILO first in last out
 type Stack struct {
 	size int
 	top  *ds.DulNode // top 就是最顶上的那个元素
