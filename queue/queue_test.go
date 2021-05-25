@@ -1,5 +1,5 @@
 // Open Source: MIT License
-// Author: Jaco Ding <deen.job@qq.com>
+// Author: Jaco Ding <ding@ibyte.me>
 // Date: 2021/5/24 - 4:27 下午 - UTC/GMT+08:00
 
 package queue

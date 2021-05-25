@@ -1,6 +1,5 @@
-// Copyright (c) 2020 HigKer
 // Open Source: MIT License
-// Author: SDing <deen.job@qq.com>
+// Author: Jaco Ding <deen.job@qq.com>
 // Date: 2021/5/21 - 4:19 下午 - UTC/GMT+08:00
 
 package list

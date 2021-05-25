@@ -1,6 +1,5 @@
-// Copyright (c) 2020 sDing
 // Open Source: MIT License
-// Author: SDing <deen.job@qq.com>
+// Author: Jaco Ding <ding@ibyte.me>
 // Date: 2021/5/21 - 3:13 下午 - UTC/GMT+08:00
 
 package list

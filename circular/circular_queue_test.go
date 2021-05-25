@@ -1,5 +1,5 @@
 // Open Source: MIT License
-// Author: Jaco Ding <deen.job@qq.com>
+// Author: Jaco Ding <ding@ibyte.me>
 // Date: 2021/5/24 - 9:43 下午 - UTC/GMT+08:00
 
 package circular
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestQueue(t *testing.T) {
+func TestCycleQueue(t *testing.T) {
 	queue, err := NewQueue(20)
 	t.Error(err)
 

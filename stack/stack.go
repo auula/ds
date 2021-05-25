@@ -1,3 +1,7 @@
+// Open Source: MIT License
+// Author: Jaco Ding <ding@ibyte.me>
+// Date: 2021/5/24 - 4:27 下午 - UTC/GMT+08:00
+
 // stack data structure
 package stack
 
