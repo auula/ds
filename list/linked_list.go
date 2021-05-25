@@ -7,6 +7,7 @@
 package list
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/higker/ds"
@@ -112,12 +113,16 @@ func (list *LinkedList) Remove(index int) {
 
 }
 
-func (list *LinkedList) Range(channel chan ds.Element) {
+func (list *LinkedList) Range(ctx context.Context, channel chan ds.Element) {
 	node := list.head
 	go func() {
 		for node != nil {
 			channel <- node
 			node = node.Next
+			if ctx.Done() != nil {
+				close(channel)
+				return
+			}
 		}
 		close(channel)
 	}()

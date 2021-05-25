@@ -28,7 +28,7 @@ func NewQueue(size int) (*CycleQueue, error) {
 	return cq, nil
 }
 
-// Push to add data to queue
+// Push  add data to queue
 func (q *CycleQueue) Push(value interface{}) error {
 	if (q.rearIndex+1)%cap(q.data) == q.frontIndex {
 		return errors.New("circular queue full")
