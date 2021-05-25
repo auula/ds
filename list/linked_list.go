@@ -126,6 +126,8 @@ func (list *LinkedList) Range(ctx context.Context, channel chan ds.Element) {
 				if node != nil {
 					channel <- node
 					node = node.Next
+				} else {
+					break
 				}
 			}
 		}
