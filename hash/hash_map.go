@@ -87,7 +87,8 @@ func (hash *Map) Put(key, value interface{}) {
 	if hash.entry[index] == nil {
 		hash.entry[index] = list.New()
 	}
-	// 去重 拿到node 检测k
+	// 去重 拿到node 检测k ！！ 干脆提示用户是重复的！ 取的时候要注意，！用的时候只能自己确定key是否唯一
+	// 干脆这个叫Table吧，重新一个map 做hashmap 和 go map 一样
 	hash.entry[index].Add(&MapItem{k: key, v: value})
 }
 
