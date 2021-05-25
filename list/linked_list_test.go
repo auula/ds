@@ -6,12 +6,14 @@ package list
 
 import (
 	"testing"
+
+	"github.com/higker/ds"
 )
 
 // go test -v --run=TestNew
 func TestNew(t *testing.T) {
 
-	channel := make(chan Element)
+	channel := make(chan ds.Element)
 
 	linkedList := New()
 	linkedList.Add(1)
