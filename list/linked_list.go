@@ -115,17 +115,23 @@ func (list *LinkedList) Remove(index int) {
 
 func (list *LinkedList) Range(ctx context.Context, channel chan ds.Element) {
 	node := list.head
+
 	go func() {
-		for node != nil {
-			channel <- node
-			node = node.Next
-			if ctx.Done() != nil {
+		for {
+			select {
+			case <-ctx.Done():
 				close(channel)
 				return
+			default:
+				if node != nil {
+					channel <- node
+					node = node.Next
+				}
 			}
 		}
 		close(channel)
 	}()
+
 }
 
 func (list *LinkedList) Add(value interface{}) {

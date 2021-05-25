@@ -5,6 +5,7 @@
 package list
 
 import (
+	"context"
 	"testing"
 
 	"github.com/higker/ds"
@@ -21,10 +22,18 @@ func TestNew(t *testing.T) {
 	linkedList.Add(2)
 	linkedList.Add(3)
 	linkedList.Add(4)
+	linkedList.Add(4)
+	linkedList.Add(6)
+	linkedList.Add(7)
+	linkedList.Add(7)
+	linkedList.Add(7)
+	linkedList.Add(7)
 
 	linkedList.Insertion(3, 2)
 
-	linkedList.Range(channel)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	linkedList.Range(ctx, channel)
 
 	//linkedList.Remove(3)
 
@@ -37,6 +46,9 @@ func TestNew(t *testing.T) {
 	}
 
 	for node := range channel {
+		if node.Val() == 6 {
+			cancel()
+		}
 		t.Log(node.Val())
 	}
 }

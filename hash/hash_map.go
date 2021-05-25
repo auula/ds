@@ -58,7 +58,7 @@ func NewMap() *Map {
 	}
 }
 
-// CodeFunc handler hash function
+// Code handler hash function
 func Code(key interface{}) int {
 	var code int = -1
 	switch key.(type) {
@@ -82,13 +82,13 @@ func (hash *Map) FindEntry(key interface{}) *list.LinkedList {
 }
 
 func (hash *Map) Put(key, value interface{}) {
-	entry := hash.FindEntry(key)
+	index := hash.FindIndex(key)
 
-	if entry == nil {
-		entry = list.New()
+	if hash.entry[index] == nil {
+		hash.entry[index] = list.New()
 	}
 
-	entry.Add(&MapItem{k: key, v: value})
+	hash.entry[index].Add(&MapItem{k: key, v: value})
 }
 
 func (hash *Map) Get(k interface{}) interface{} {
@@ -100,9 +100,10 @@ func (hash *Map) Get(k interface{}) interface{} {
 
 	entry.Range(ctx, channel)
 	for element := range channel {
-		if element.(*MapItem).k == k {
+		ele := element.(*ds.Node).Value.(*MapItem)
+		if ele.k == k {
 			cancel()
-			return element.(*MapItem).Val()
+			return ele.Val()
 		}
 	}
 	return nil

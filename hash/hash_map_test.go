@@ -5,6 +5,7 @@
 package hash
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -15,5 +16,5 @@ func TestMap(t *testing.T) {
 	tab.Put("k3", 1)
 	tab.Put("k4", 1)
 	tab.Put("k5", 1)
-
+	fmt.Println(tab.Get("k4"))
 }
