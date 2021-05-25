@@ -2,7 +2,7 @@
 // Author: Jaco Ding <ding@ibyte.me>
 // Date: 2021/5/20 - 4:46 下午 - UTC/GMT+08:00
 
-// linkedList data structure
+// LinkedList data structure
 package list
 
 import (

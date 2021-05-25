@@ -10,3 +10,8 @@ import "fmt"
 type HashMap struct {
 	fmt.Formatter
 }
+
+// HashCodeFunc handler hash function
+func HashCodeFunc() {
+
+}
