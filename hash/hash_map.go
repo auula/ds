@@ -87,7 +87,7 @@ func (hash *Map) Put(key, value interface{}) {
 	if hash.entry[index] == nil {
 		hash.entry[index] = list.New()
 	}
-
+	// 去重 拿到node 检测k
 	hash.entry[index].Add(&MapItem{k: key, v: value})
 }
 
