@@ -15,38 +15,29 @@ import (
 func TestNew(t *testing.T) {
 
 	channel := make(chan ds.Element)
-
-	linkedList := New()
-	linkedList.Add(1)
-
-	linkedList.Add(2)
-	linkedList.Add(3)
-	linkedList.Add(4)
-	linkedList.Add(4)
-	linkedList.Add(6)
-	linkedList.Add(7)
-	linkedList.Add(7)
-	linkedList.Add(7)
-	linkedList.Add(7)
-
-	linkedList.Insertion(3, 2)
-
 	ctx, cancel := context.WithCancel(context.Background())
 
-	linkedList.Range(ctx, channel)
+	list := New()
 
-	//linkedList.Remove(3)
+	for i := 0; i < 10; i++ {
+		list.Add(i)
+	}
 
-	t.Log("linkedList last node value :", linkedList.last)
-	t.Log("linkedList size :", linkedList.size)
-	t.Log("linkedList  node  index 3  :", linkedList.Get(2))
+	//list.Insert(3, 2)
 
-	if linkedList.Try() {
-		t.Error(linkedList.Error())
+	list.Range(ctx, channel)
+
+	// list.Remove(33)
+
+	t.Log("linkedList size :", list.Size())
+	t.Log("linkedList  node  index 3  :", list.Get(2))
+
+	if list.Err() != nil {
+		t.Error(list.Err())
 	}
 
 	for node := range channel {
-		if node.Val() == 6 {
+		if node.Val() == 7 {
 			cancel()
 		}
 		t.Log(node.Val())

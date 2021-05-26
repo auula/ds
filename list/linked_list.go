@@ -15,11 +15,13 @@ import (
 
 // List 链表的抽象接口
 type List interface {
-	Get(index int) ds.Element               // 通过下标获取node
-	Remove(index int)                       // 通过下标移除
-	Insertion(index int, value interface{}) // 通过下标插入
-	Range(channel chan ds.Element)          // 插入channel遍历
-	Add(value interface{})                  // 添加元素
+	Get(index int) ds.Element                           // 通过下标获取node
+	Remove(index int)                                   // 通过下标移除
+	Insert(index int, value interface{})                // 通过下标插入
+	Range(ctx context.Context, channel chan ds.Element) // 插入channel遍历
+	Add(value interface{})                              // 添加元素
+	Size() int                                          // List大小
+	Err() error                                         // 是否发生Error
 }
 
 type LinkedList struct {
@@ -29,7 +31,7 @@ type LinkedList struct {
 }
 
 // New create a LinkedList
-func New() *LinkedList {
+func New() List {
 	return &LinkedList{
 		head: nil,
 		last: nil,
@@ -37,7 +39,7 @@ func New() *LinkedList {
 	}
 }
 
-func (list *LinkedList) Insertion(index int, value interface{}) {
+func (list *LinkedList) Insert(index int, value interface{}) {
 
 	// 检查err 如果有err了这个程序不往下执行
 	if list.err != nil {
@@ -126,14 +128,13 @@ func (list *LinkedList) Range(ctx context.Context, channel chan ds.Element) {
 				if node != nil {
 					channel <- node
 					node = node.Next
-				} else {
-					break
 				}
+				// 不需要二次关闭 close(channel) 否则 panic
+				// 这个通道应该是在上层关闭 而不是在这里关闭
+				// 重复关闭则 panic
 			}
 		}
-		close(channel)
 	}()
-
 }
 
 func (list *LinkedList) Add(value interface{}) {
@@ -148,10 +149,10 @@ func (list *LinkedList) Add(value interface{}) {
 	list.size++
 }
 
-func (list *LinkedList) Try() bool {
-	return list.err != nil
+func (list *LinkedList) Err() error {
+	return list.err
 }
 
-func (list *LinkedList) Error() string {
-	return list.err.Error()
+func (list *LinkedList) Size() int {
+	return list.size
 }

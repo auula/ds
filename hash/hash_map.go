@@ -1,14 +1,15 @@
 // Open Source: MIT License
 // Author: Jaco Ding <ding@ibyte.me>
-// Date: 2021-05-25 16:40:29 - UTC/GMT+08:00
+// Date: 2021-05-26 16:10 - UTC/GMT+08:00
 
 package hash
 
 import (
 	"context"
+	"hash/crc32"
+
 	"github.com/higker/ds"
 	"github.com/higker/ds/list"
-	"hash/crc32"
 )
 
 const (
@@ -107,6 +108,9 @@ func (hash *Map) Get(k interface{}) interface{} {
 			return ele.Val()
 		}
 	}
+
+	cancel()
+
 	return nil
 }
 
