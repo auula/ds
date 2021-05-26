@@ -134,7 +134,7 @@ func (dl *DoublyLinkedList) Size() int {
 }
 
 // New create a DoublyLinkedList
-func NewDoublyLinkedList() List {
+func NewDoubly() List {
 	return &DoublyLinkedList{
 		head: nil,
 		last: nil,

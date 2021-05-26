@@ -12,7 +12,7 @@ import (
 
 func TestNewDoublyLinkedList(t *testing.T) {
 
-	list := NewDoublyLinkedList()
+	list := NewDoubly()
 
 	for i := 0; i < 10; i++ {
 		list.Add(i)
