@@ -7,6 +7,8 @@ package hash
 import (
 	"context"
 	"hash/crc32"
+	"math/rand"
+	"time"
 
 	"github.com/higker/ds"
 	"github.com/higker/ds/list"
@@ -14,6 +16,7 @@ import (
 
 const (
 	loadFactor = 0.75 // HashMap Load factor
+	size       = 10   // HashMap entry element size
 )
 
 // String hashes a string to a unique hashcode.
@@ -44,18 +47,19 @@ func (m *MapItem) Val() interface{} {
 	return m.v
 }
 
+// 怎么设计一个map才合理
 // HashMap hash table data structure
 type Map struct {
-	capacity int
-	size     int
-	entry    []list.List
+	//capacity int
+	size  int
+	entry []list.List
+	index map[interface{}]int // 记录key录入的下标位置
 }
 
 func NewMap() *Map {
 	return &Map{
-		capacity: 0,
-		size:     20,
-		entry:    make([]list.List, 20),
+		size:  size,
+		entry: make([]list.List, size),
 	}
 }
 
@@ -66,7 +70,8 @@ func Code(key interface{}) int {
 	case string:
 		code = _stringToCode(key.(string))
 	case int, int64:
-		code = 1
+		rand.Seed(time.Now().UnixNano())
+		code = rand.Intn(size) + 1
 	}
 	return code
 }
@@ -111,9 +116,22 @@ func (hash *Map) Get(k interface{}) interface{} {
 	return nil
 }
 
-// checkSize https://play.golang.org/p/chJrLC8qHrZ
-func (hash *Map) checkSize() bool {
-	size := float64(hash.size)
-	capacity := float64(hash.capacity) * loadFactor
-	return int(size) >= int(capacity)
+func (hash *Map) Remove(k interface{}) {
+	entry := hash.FindEntry(k)
+	elements, cancelFunc := entry.Range(context.Background())
+	defer cancelFunc()
+	for element := range elements {
+		ele := element.(*ds.Node).Value.(*MapItem)
+		if ele.k == k {
+			cancelFunc()
+			ele.v = nil
+		}
+	}
 }
+
+//// checkSize https://play.golang.org/p/chJrLC8qHrZ
+//func (hash *Map) checkSize() bool {
+//	size := float64(hash.size)
+//	capacity := float64(hash.capacity) * loadFactor
+//	return int(size) >= int(capacity)
+//}

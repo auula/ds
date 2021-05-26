@@ -147,6 +147,10 @@ func (list *LinkedList) Range(ctx context.Context) (<-chan ds.Element, context.C
 	return channel, cancelFunc
 }
 
+func (list *LinkedList) Search() {
+
+}
+
 func (list *LinkedList) Add(value interface{}) {
 	node := &ds.Node{Value: value}
 	if list.size == 0 {

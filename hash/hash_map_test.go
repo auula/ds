@@ -6,7 +6,9 @@ package hash
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
+	"time"
 )
 
 func TestMap(t *testing.T) {
@@ -16,5 +18,14 @@ func TestMap(t *testing.T) {
 	tab.Put("k3", 1)
 	tab.Put("k4", "四")
 	tab.Put("k5", 1)
+	tab.Remove("k3")
+	fmt.Println(tab.Get("k3"))
 	fmt.Println(tab.Get("k4"))
+}
+
+func TestRead(t *testing.T) {
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < 10; i++ {
+		t.Log(rand.Intn(10) + 1)
+	}
 }
