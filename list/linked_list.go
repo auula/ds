@@ -117,10 +117,8 @@ func (list *LinkedList) Remove(index int) {
 
 func (list *LinkedList) Range(ctx context.Context) (<-chan ds.Element, context.CancelFunc) {
 	node := list.head
+
 	cancelCtx, cancelFunc := context.WithCancel(ctx)
-	// 不需要二次关闭 close(channel) 否则 panic
-	// 这个通道应该是在上层关闭 而不是在这里关闭
-	// 重复关闭则 panic
 	channel := make(chan ds.Element)
 
 	go func() {
@@ -134,6 +132,9 @@ func (list *LinkedList) Range(ctx context.Context) (<-chan ds.Element, context.C
 					channel <- node
 					node = node.Next
 				} else {
+					// 不需要二次关闭 close(channel) 否则 panic
+					// 这个通道应该是在上层关闭 而不是在这里关闭
+					// 重复关闭则 panic
 					//if channel != nil {
 					//	close(channel)
 					//	return
