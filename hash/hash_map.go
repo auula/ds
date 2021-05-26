@@ -48,14 +48,14 @@ func (m *MapItem) Val() interface{} {
 type Map struct {
 	capacity int
 	size     int
-	entry    []*list.LinkedList
+	entry    []list.List
 }
 
 func NewMap() *Map {
 	return &Map{
 		capacity: 0,
 		size:     20,
-		entry:    make([]*list.LinkedList, 20),
+		entry:    make([]list.List, 20),
 	}
 }
 
@@ -78,7 +78,7 @@ func (hash *Map) FindIndex(key interface{}) int {
 }
 
 // FindEntry Query from Table Entry
-func (hash *Map) FindEntry(key interface{}) *list.LinkedList {
+func (hash *Map) FindEntry(key interface{}) list.List {
 	return hash.entry[Code(key)&cap(hash.entry)%hash.size]
 }
 
@@ -95,21 +95,18 @@ func (hash *Map) Put(key, value interface{}) {
 
 func (hash *Map) Get(k interface{}) interface{} {
 
-	channel := make(chan ds.Element, 10)
-	ctx, cancel := context.WithCancel(context.Background())
-
 	entry := hash.FindEntry(k)
 
-	entry.Range(ctx, channel)
-	for element := range channel {
+	elements, cancelFunc := entry.Range(context.Background())
+
+	defer cancelFunc()
+	for element := range elements {
 		ele := element.(*ds.Node).Value.(*MapItem)
 		if ele.k == k {
-			cancel()
+			cancelFunc()
 			return ele.Val()
 		}
 	}
-
-	cancel()
 
 	return nil
 }
