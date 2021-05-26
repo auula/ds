@@ -23,7 +23,7 @@ type KMap interface {
 type Root struct {
 	lastIndex int
 	data      []*MapItem
-	size      int
+	size      int // 这个确定的
 }
 
 type MapItem struct {
@@ -34,6 +34,22 @@ type Map struct {
 	capacity int
 	size     int
 	index    []*Root
+}
+
+// 1. for 初始化
+// 2.
+func New() KMap {
+	m := new(Map)
+	m.index = make([]*Root, 10, 10)
+	for i := range m.index {
+		root := new(Root)
+		mapItems := make([]*MapItem, 10, 10)
+		root.data = mapItems
+		root.size = 0
+		m.index[i] = root
+	}
+	m.size = 10
+	return m
 }
 
 func (m *Map) Hash(key interface{}) int {
