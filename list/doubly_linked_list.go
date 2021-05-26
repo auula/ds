@@ -5,6 +5,7 @@
 package list
 
 import (
+	"context"
 	"fmt"
 	"github.com/higker/ds"
 )
@@ -15,7 +16,7 @@ type DoublyLinkedList struct {
 	err        error
 }
 
-func (dl *DoublyLinkedList) Insertion(index int, value interface{}) {
+func (dl *DoublyLinkedList) Insert(index int, value interface{}) {
 	// 检查err 如果有err了这个程序不往下执行
 	if dl.err != nil {
 		return
@@ -86,15 +87,29 @@ func (dl *DoublyLinkedList) Remove(index int) {
 	dl.size--
 }
 
-func (dl *DoublyLinkedList) Range(channel chan ds.Element) {
+func (dl *DoublyLinkedList) Range(ctx context.Context) (<-chan ds.Element, context.CancelFunc) {
 	node := dl.head
+
+	cancelCtx, cancelFunc := context.WithCancel(ctx)
+	channel := make(chan ds.Element)
+
 	go func() {
-		for node != nil {
-			channel <- node
-			node = node.Next
+		for {
+			select {
+			case <-cancelCtx.Done():
+				close(channel)
+				return
+			default:
+				if node != nil && channel != nil {
+					channel <- node
+					node = node.Next
+				} else {
+					return
+				}
+			}
 		}
-		close(channel)
 	}()
+	return channel, cancelFunc
 }
 
 func (dl *DoublyLinkedList) Add(value interface{}) {
@@ -110,16 +125,16 @@ func (dl *DoublyLinkedList) Add(value interface{}) {
 	dl.size++
 }
 
-func (dl *DoublyLinkedList) Try() bool {
-	return dl.err != nil
+func (dl *DoublyLinkedList) Err() error {
+	return dl.err
 }
 
-func (dl *DoublyLinkedList) Error() string {
-	return dl.err.Error()
+func (dl *DoublyLinkedList) Size() int {
+	return dl.size
 }
 
 // New create a DoublyLinkedList
-func NewDoublyLinkedList() *DoublyLinkedList {
+func NewDoublyLinkedList() List {
 	return &DoublyLinkedList{
 		head: nil,
 		last: nil,

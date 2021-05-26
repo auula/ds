@@ -5,33 +5,39 @@
 package list
 
 import (
+	"context"
 	"testing"
-
-	"github.com/higker/ds"
+	"time"
 )
 
 func TestNewDoublyLinkedList(t *testing.T) {
 
-	channel := make(chan ds.Element)
-
 	list := NewDoublyLinkedList()
-	list.Add(1)
-	list.Add(2)
-	list.Add(3)
-	list.Add(4)
-	list.Add(4)
-	list.Add(5)
 
-	list.Insertion(5, 6)
+	for i := 0; i < 10; i++ {
+		list.Add(i)
+	}
 
-	//list.Remove(4)
+	//list.Insert(3, 2)
 
-	list.Range(channel)
+	elements, cancelFunc := list.Range(context.Background())
 
-	for node := range channel {
-		t.Log(node.Val())
-		if node.Val() == 4 {
-			t.Log("4 perv is", node.(*ds.DulNode).Perv.Val())
-		}
+	// list.Remove(33)
+
+	t.Log("linkedList size :", list.Size())
+	t.Log("linkedList  node  index 3  :", list.Get(2))
+
+	if list.Err() != nil {
+		t.Error(list.Err())
+	}
+
+	for element := range elements {
+		go func() {
+			time.Sleep(6 * time.Second)
+			cancelFunc()
+			return
+		}()
+		time.Sleep(1 * time.Second)
+		t.Log(element.Val())
 	}
 }
