@@ -15,13 +15,13 @@ import (
 
 // List 链表的抽象接口
 type List interface {
-	Get(index int) ds.Element                           // 通过下标获取node
-	Remove(index int)                                   // 通过下标移除
-	Insert(index int, value interface{})                // 通过下标插入
-	Range(ctx context.Context, channel chan ds.Element) // 插入channel遍历
-	Add(value interface{})                              // 添加元素
-	Size() int                                          // List大小
-	Err() error                                         // 是否发生Error
+	Get(index int) ds.Element                                          // 通过下标获取node
+	Remove(index int)                                                  // 通过下标移除
+	Insert(index int, value interface{})                               // 通过下标插入
+	Range(ctx context.Context) (<-chan ds.Element, context.CancelFunc) // 遍历
+	Add(value interface{})                                             // 添加元素
+	Size() int                                                         // List大小
+	Err() error                                                        // 是否发生Error
 }
 
 type LinkedList struct {
@@ -115,26 +115,35 @@ func (list *LinkedList) Remove(index int) {
 
 }
 
-func (list *LinkedList) Range(ctx context.Context, channel chan ds.Element) {
+func (list *LinkedList) Range(ctx context.Context) (<-chan ds.Element, context.CancelFunc) {
 	node := list.head
+	cancelCtx, cancelFunc := context.WithCancel(ctx)
+	// 不需要二次关闭 close(channel) 否则 panic
+	// 这个通道应该是在上层关闭 而不是在这里关闭
+	// 重复关闭则 panic
+	channel := make(chan ds.Element)
 
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-cancelCtx.Done():
 				close(channel)
 				return
 			default:
-				if node != nil {
+				if node != nil && channel != nil {
 					channel <- node
 					node = node.Next
+				} else {
+					//if channel != nil {
+					//	close(channel)
+					//	return
+					//}
+					return
 				}
-				// 不需要二次关闭 close(channel) 否则 panic
-				// 这个通道应该是在上层关闭 而不是在这里关闭
-				// 重复关闭则 panic
 			}
 		}
 	}()
+	return channel, cancelFunc
 }
 
 func (list *LinkedList) Add(value interface{}) {

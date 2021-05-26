@@ -7,15 +7,11 @@ package list
 import (
 	"context"
 	"testing"
-
-	"github.com/higker/ds"
+	"time"
 )
 
 // go test -v --run=TestNew
 func TestNew(t *testing.T) {
-
-	channel := make(chan ds.Element)
-	ctx, cancel := context.WithCancel(context.Background())
 
 	list := New()
 
@@ -25,7 +21,7 @@ func TestNew(t *testing.T) {
 
 	//list.Insert(3, 2)
 
-	list.Range(ctx, channel)
+	elements, cancelFunc := list.Range(context.Background())
 
 	// list.Remove(33)
 
@@ -36,10 +32,14 @@ func TestNew(t *testing.T) {
 		t.Error(list.Err())
 	}
 
-	for node := range channel {
-		if node.Val() == 7 {
-			cancel()
-		}
-		t.Log(node.Val())
+	for element := range elements {
+		go func() {
+			time.Sleep(6 * time.Second)
+			cancelFunc()
+			return
+		}()
+		time.Sleep(1 * time.Second)
+		t.Log(element.Val())
 	}
+
 }
