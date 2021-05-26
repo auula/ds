@@ -7,6 +7,7 @@
 package kmap
 
 import (
+	"fmt"
 	"hash/crc32"
 	"math/rand"
 	"time"
@@ -18,6 +19,7 @@ var _index map[interface{}][2]int
 type KMap interface {
 	Put(k interface{}, v interface{})
 	Get(k interface{}) interface{}
+	Debug()
 }
 
 type Root struct {
@@ -43,7 +45,7 @@ func New() KMap {
 	m.index = make([]*Root, 10, 10)
 	for i := range m.index {
 		root := new(Root)
-		mapItems := make([]*MapItem, 10, 10)
+		mapItems := make([]*MapItem, 100, 100)
 		root.data = mapItems
 		root.size = 0
 		m.index[i] = root
@@ -77,6 +79,12 @@ func (m *Map) Put(k interface{}, v interface{}) {
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
 	root.lastIndex++
+
+}
+
+func (m *Map) Debug() {
+	fmt.Println(m.index[1].data[3].k)
+	fmt.Println(m.index[1].data[3].v)
 }
 
 func (m *Map) Get(k interface{}) interface{} {
