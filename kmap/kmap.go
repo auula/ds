@@ -109,6 +109,8 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 
 		// 初始化新加的索引
 		for i := range newIndex {
+			// 只初始化新加的索引
+			i += cap(m.index)
 			root := new(Root)
 			mapItems := make([]*MapItem, 100, 100)
 			root.data = mapItems
