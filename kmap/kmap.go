@@ -7,17 +7,17 @@
 package kmap
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"hash/crc32"
-	"math/rand"
-	"time"
 )
 
 // 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
 var _index map[interface{}][2]int
 
 type KMap interface {
-	Put(k interface{}, v interface{})
+	Put(k interface{}, v interface{}) bool
 	Get(k interface{}) interface{}
 	Debug()
 }
@@ -43,6 +43,7 @@ type Map struct {
 func New() KMap {
 	m := new(Map)
 	m.index = make([]*Root, 10, 10)
+	// 初始化索引
 	for i := range m.index {
 		root := new(Root)
 		mapItems := make([]*MapItem, 100, 100)
@@ -50,7 +51,7 @@ func New() KMap {
 		root.size = 0
 		m.index[i] = root
 	}
-	m.size = 10
+	m.size = cap(m.index)
 	return m
 }
 
@@ -60,31 +61,44 @@ func (m *Map) Hash(key interface{}) int {
 	case string:
 		code = _stringToCode(key.(string))
 	case int, int64:
-		rand.Seed(time.Now().UnixNano())
-		code = rand.Intn(10) + 1
+		// 使用crypto/rand生成随机数 然后 计算哈希
+		code = _randomInt(100)
 	}
 	return code
 }
 
+// 通过哈希计算 得到root节点下标
 func (m *Map) Index(k interface{}) int {
-	return (m.Hash(k) % cap(m.index)) % m.size
+	return m.Hash(k) % m.size
 }
 
-func (m *Map) Put(k interface{}, v interface{}) {
+func (m *Map) Put(k interface{}, v interface{}) bool {
+	// 已经存在
+	if _, ok := _index[k]; ok {
+		return false
+	}
+
 	// 拿到所在的组，满了重新做一次记录
-	root := m.index[m.Index(k)]
+	bucketIndex := m.Index(k)
+	root := m.index[bucketIndex]
 	if root.lastIndex == root.size {
 		// 容量已经满了
 	}
+
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
+	// 更新外部索引
+	_index[k] = [2]int{bucketIndex, root.lastIndex}
 	root.lastIndex++
 
+	return true
 }
 
 func (m *Map) Debug() {
-	fmt.Println(m.index[1].data[3].k)
-	fmt.Println(m.index[1].data[3].v)
+	fmt.Println(m.index[9].data[1])
+	fmt.Println(m.index[8].data[2])
+	fmt.Println(m.index[7].data[3])
+	fmt.Println(m.index[6].data[4])
 }
 
 func (m *Map) Get(k interface{}) interface{} {
@@ -117,4 +131,10 @@ func _stringToCode(s string) int {
 	}
 	// v == MinInt
 	return 0
+}
+
+func _randomInt(max int) int {
+	var n uint16
+	binary.Read(rand.Reader, binary.LittleEndian, &n)
+	return int(n) % max
 }

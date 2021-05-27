@@ -14,10 +14,15 @@ import (
 func TestMap(t *testing.T) {
 	kMap := New()
 	for i := 0; i < 100; i++ {
-		kMap.Put(fmt.Sprintf("k%d", i), i)
+		kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), i)
 	}
-	for i := 0; i < 100; i++ {
-		t.Log(kMap.Get(fmt.Sprintf("k%d", i)))
-	}
+
 	kMap.Debug()
+
+}
+
+func TestRandInt(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		t.Log(_randomInt(1024*2) % 100)
+	}
 }
