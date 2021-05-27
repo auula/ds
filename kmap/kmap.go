@@ -115,6 +115,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 				mapItems := make([]*MapItem, 100, 100)
 				root.data = mapItems
 				root.size = cap(mapItems)
+				root.lastIndex = 0
 				newIndex[i] = root
 			}
 		}
@@ -122,14 +123,19 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		m.size = cap(m.index)
 		root = m.index[bucketIndex]
 
+	} else {
+		m.write(k, v, root, bucketIndex)
 	}
+
+	return true
+}
+
+func (m *Map) write(k, v interface{}, root *Root, bucketIndex int) {
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
 	// 更新外部索引
 	_index[k] = [2]int{bucketIndex, root.lastIndex}
 	root.lastIndex++
-
-	return true
 }
 
 func addressing(bucketIndex int, p *Map) int {

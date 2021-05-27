@@ -12,17 +12,18 @@ import (
 )
 
 func TestKMap(t *testing.T) {
+	k := fmt.Sprintf("k%d", _randomInt(1024*8))
 	kMap := New()
-	kMap.Put("foo", "bar")
-	for i := 0; i < 1000000; i++ {
+	kMap.Put(k, "bar")
+	for i := 0; i < 100000; i++ {
 		kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), i)
 	}
 
-	kMap.Remove("foo")
+	// kMap.Remove("foo")
 	// kMap.Put("foo", "bar")
 	kMap.Debug()
 
-	t.Log(kMap.Get("foo"))
+	t.Log(kMap.Get(k))
 }
 
 func TestMap(t *testing.T) {
