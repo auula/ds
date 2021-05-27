@@ -80,6 +80,7 @@ func (m *Map) Index(k interface{}) int {
 }
 
 func (m *Map) Put(k interface{}, v interface{}) bool {
+
 	// 已经存在
 	if _, ok := _index[k]; ok {
 		return false
@@ -121,6 +122,8 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		}
 		m.index = newIndex
 		m.size = cap(m.index)
+		// 因为扩容了重新生成bucketIndex
+		// bucketIndex = m.Index(k)
 		root = m.index[bucketIndex]
 		m.write(k, v, root, bucketIndex)
 	} else {
@@ -132,6 +135,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 
 func (m *Map) write(k, v interface{}, root *Root, bucketIndex int) {
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
+	// fmt.Println("root.lastIndex", root.lastIndex)
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
 	// 更新外部索引
 	_index[k] = [2]int{bucketIndex, root.lastIndex}
