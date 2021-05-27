@@ -89,8 +89,8 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 	bucketIndex := m.Index(k)
 	root := m.index[bucketIndex]
 	if root.lastIndex == root.size {
-
 		// 容量已经满了,移动主指针
+		fmt.Println(cap(m.index))
 		for i := range m.index {
 			if m.index[i].size == m.index[i].lastIndex {
 				bucketIndex++
@@ -109,7 +109,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 			if i < cap(m.index) {
 				newIndex[i] = m.index[i]
 			}
-			if i > cap(m.index) {
+			if i >= cap(m.index) {
 				// 只初始化新加的索引
 				root := new(Root)
 				mapItems := make([]*MapItem, 100, 100)
