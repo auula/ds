@@ -22,7 +22,8 @@ func init() {
 }
 
 type KMap interface {
-	Put(k interface{}, v interface{}) bool
+	Put(k, v interface{}) bool
+	Replace(k, v interface{})
 	Get(k interface{}) interface{}
 	Remove(k interface{})
 	Debug()
@@ -140,6 +141,11 @@ func (m *Map) Remove(k interface{}) {
 	m.index[_index[k][0]].data[_index[k][1]] = nil
 	m.index[_index[k][0]].lastIndex--
 	delete(_index, k) // 移除索引
+}
+
+func (m *Map) Replace(k, v interface{}) {
+	m.Remove(k)
+	m.Put(k, v)
 }
 
 func _stringToCode(s string) int {
