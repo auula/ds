@@ -95,10 +95,18 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 				bucketIndex++
 			}
 		}
+
 		// 触发扩容
 		// 扩容之后前面位置的数据桶就要减少负载
 		// 下次计算hash的时候就偏移计算数据桶指针 + 10
 		newIndex := make([]*Root, cap(m.index)*2, cap(m.index)*2)
+
+		// m.index = append(m.index, newIndex...) 不使用  append
+		// 扩容复制原有的下标
+		for i := 0; i < cap(m.index); i++ {
+			newIndex[i] = m.index[i]
+		}
+
 		// 初始化新加的索引
 		for i := range newIndex {
 			root := new(Root)
@@ -107,11 +115,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 			root.size = cap(mapItems)
 			newIndex[i] = root
 		}
-		// m.index = append(m.index, newIndex...) 不使用  append
-		// 扩容复制原有的下标
-		for i := 0; i < cap(m.index); i++ {
-			newIndex[i] = m.index[i]
-		}
+
 		m.index = newIndex
 		m.size = cap(m.index)
 		root = m.index[bucketIndex]
