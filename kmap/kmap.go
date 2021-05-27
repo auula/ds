@@ -89,6 +89,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 	bucketIndex := m.Index(k)
 	root := m.index[bucketIndex]
 	if root.lastIndex == root.size {
+
 		// 容量已经满了,移动主指针
 		for i := range m.index {
 			if m.index[i].size == m.index[i].lastIndex {
@@ -103,8 +104,11 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 
 		// m.index = append(m.index, newIndex...) 不使用  append
 		// 扩容复制原有的下标
-		for i := 0; i < cap(m.index); i++ {
-			newIndex[i] = m.index[i]
+		for i := 0; i < cap(newIndex); i++ {
+			// 老的索引必须小于新索引的范围
+			if i < cap(m.index) {
+				newIndex[i] = m.index[i]
+			}
 			if i > cap(m.index) {
 				// 只初始化新加的索引
 				root := new(Root)
@@ -117,6 +121,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		m.index = newIndex
 		m.size = cap(m.index)
 		root = m.index[bucketIndex]
+
 	}
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
