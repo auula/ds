@@ -97,6 +97,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		// 触发扩容 待做
 		newIndex := make([]*Root, 10, 10)
 		m.index = append(m.index, newIndex...)
+		// 扩容之后前面位置的数据桶就要减少负载，下次计算hash的时候就偏移计算数据桶指针 + 10
 	}
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
