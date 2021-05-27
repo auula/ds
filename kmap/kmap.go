@@ -115,6 +115,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 			root.size = cap(mapItems)
 			// 只初始化新加的索引
 			newIndex[i+cap(m.index)] = root
+			i -= cap(m.index)
 		}
 
 		m.index = newIndex
