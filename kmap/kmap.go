@@ -16,9 +16,15 @@ import (
 // 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
 var _index map[interface{}][2]int
 
+// 创建的时候计算
+func init() {
+	_index = make(map[interface{}][2]int, 100)
+}
+
 type KMap interface {
 	Put(k interface{}, v interface{}) bool
 	Get(k interface{}) interface{}
+	Remove(k interface{})
 	Debug()
 }
 
@@ -48,7 +54,7 @@ func New() KMap {
 		root := new(Root)
 		mapItems := make([]*MapItem, 100, 100)
 		root.data = mapItems
-		root.size = 0
+		root.size = cap(mapItems)
 		m.index[i] = root
 	}
 	m.size = cap(m.index)
@@ -62,7 +68,7 @@ func (m *Map) Hash(key interface{}) int {
 		code = _stringToCode(key.(string))
 	case int, int64:
 		// 使用crypto/rand生成随机数 然后 计算哈希
-		code = _randomInt(100)
+		code = _randomInt(m.size) * 8
 	}
 	return code
 }
@@ -82,9 +88,16 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 	bucketIndex := m.Index(k)
 	root := m.index[bucketIndex]
 	if root.lastIndex == root.size {
-		// 容量已经满了
+		// 容量已经满了,移动主指针
+		for i := range m.index {
+			if m.index[i].size == m.index[i].lastIndex {
+				bucketIndex++
+			}
+		}
+		// 触发扩容 待做
+		newIndex := make([]*Root, 10, 10)
+		m.index = append(m.index, newIndex...)
 	}
-
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
 	// 更新外部索引
@@ -92,6 +105,14 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 	root.lastIndex++
 
 	return true
+}
+
+func addressing(bucketIndex int, p *Map) int {
+	//bucketIndex++
+	//if bucketIndex == p. {
+	//
+	//}
+	return 0
 }
 
 func (m *Map) Debug() {
@@ -102,23 +123,21 @@ func (m *Map) Debug() {
 }
 
 func (m *Map) Get(k interface{}) interface{} {
-	root := m.index[m.Index(k)]
-	for _, ele := range root.data {
-		if ele.k == k {
-			return ele.v
-		}
+	// 已经存在
+	if _, ok := _index[k]; !ok {
+		return nil
 	}
-	return nil
+	// 直接通过坐标拿取数据 直接数据复杂度 改成 O(1)
+	return m.index[_index[k][0]].data[_index[k][1]].v
 }
 
 func (m *Map) Remove(k interface{}) {
-	root := m.index[m.Index(k)]
-	for _, ele := range root.data {
-		if ele.k == k {
-			ele = nil
-			return
-		}
+	if _, ok := _index[k]; !ok {
+		return
 	}
+	m.index[_index[k][0]].data[_index[k][1]] = nil
+	m.index[_index[k][0]].lastIndex--
+	delete(_index, k) // 移除索引
 }
 
 func _stringToCode(s string) int {
