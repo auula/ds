@@ -127,7 +127,8 @@ func (m *Map) Get(k interface{}) interface{} {
 	if _, ok := _index[k]; !ok {
 		return nil
 	}
-	// 直接通过坐标拿取数据 直接数据复杂度 改成 O(1)
+	// 直接通过坐标拿取数据 这样获取数据的时间复杂度 就是 O(1)
+	// 大大提高拿取数据的性能
 	return m.index[_index[k][0]].data[_index[k][1]].v
 }
 
