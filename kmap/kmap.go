@@ -105,19 +105,15 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		// 扩容复制原有的下标
 		for i := 0; i < cap(m.index); i++ {
 			newIndex[i] = m.index[i]
+			if i > cap(m.index) {
+				// 只初始化新加的索引
+				root := new(Root)
+				mapItems := make([]*MapItem, 100, 100)
+				root.data = mapItems
+				root.size = cap(mapItems)
+				newIndex[i] = root
+			}
 		}
-
-		// 初始化新加的索引
-		for i := range newIndex {
-			root := new(Root)
-			mapItems := make([]*MapItem, 100, 100)
-			root.data = mapItems
-			root.size = cap(mapItems)
-			// 只初始化新加的索引
-			newIndex[i+cap(m.index)] = root
-			i -= cap(m.index)
-		}
-
 		m.index = newIndex
 		m.size = cap(m.index)
 		root = m.index[bucketIndex]
