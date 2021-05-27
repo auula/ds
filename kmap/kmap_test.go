@@ -14,7 +14,7 @@ import (
 func TestKMap(t *testing.T) {
 	kMap := New()
 	kMap.Put("foo", "bar")
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000000; i++ {
 		kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), i)
 	}
 
@@ -28,7 +28,7 @@ func TestKMap(t *testing.T) {
 func TestMap(t *testing.T) {
 	maps := make(map[interface{}]interface{}, 1000)
 	maps["foo"] = "bar"
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 1000000; i++ {
 		maps[fmt.Sprintf("k%d", _randomInt(1024))] = i
 	}
 	t.Log(maps["foo"])
