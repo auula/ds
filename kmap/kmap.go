@@ -53,7 +53,7 @@ func New() KMap {
 	// 初始化索引
 	for i := range m.index {
 		root := new(Root)
-		mapItems := make([]*MapItem, 1024<<8, 1024<<8)
+		mapItems := make([]*MapItem, 100, 100)
 		root.data = mapItems
 		root.size = cap(mapItems)
 		m.index[i] = root
@@ -109,13 +109,12 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 
 		// 初始化新加的索引
 		for i := range newIndex {
-			// 只初始化新加的索引
-			i += cap(m.index)
 			root := new(Root)
 			mapItems := make([]*MapItem, 100, 100)
 			root.data = mapItems
 			root.size = cap(mapItems)
-			newIndex[i] = root
+			// 只初始化新加的索引
+			newIndex[i+cap(m.index)] = root
 		}
 
 		m.index = newIndex
