@@ -95,10 +95,22 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 				bucketIndex++
 			}
 		}
-		// 触发扩容 待做
+		// 触发扩容
+		// 扩容之后前面位置的数据桶就要减少负载
+		// 下次计算hash的时候就偏移计算数据桶指针 + 10
 		newIndex := make([]*Root, 10, 10)
+		// 初始化新加的索引
+		for i := range newIndex {
+			root := new(Root)
+			mapItems := make([]*MapItem, 100, 100)
+			root.data = mapItems
+			root.size = cap(mapItems)
+			newIndex[i] = root
+		}
 		m.index = append(m.index, newIndex...)
-		// 扩容之后前面位置的数据桶就要减少负载，下次计算hash的时候就偏移计算数据桶指针 + 10
+		m.size = cap(m.index)
+
+		root = m.index[bucketIndex]
 	}
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
