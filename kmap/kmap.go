@@ -90,47 +90,44 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 	bucketIndex := m.Index(k)
 	root := m.index[bucketIndex]
 	if root.lastIndex == root.size {
-		var flag bool
+		//flag := false
 		// 容量已经满了,移动主指针
 		fmt.Println(cap(m.index))
-		for i := range m.index {
-			if m.index[i].size == m.index[i].lastIndex {
+
+		for _, root := range m.index {
+			if root.lastIndex == root.size {
 				bucketIndex++
-			} else {
-				flag = false
-				break
 			}
 		}
 
-		if !flag {
-			// 触发扩容
-			// 扩容之后前面位置的数据桶就要减少负载
-			// 下次计算hash的时候就偏移计算数据桶指针 + 10
-			newIndex := make([]*Root, cap(m.index)*2, cap(m.index)*2)
+		// 触发扩容
+		// 扩容之后前面位置的数据桶就要减少负载
+		// 下次计算hash的时候就偏移计算数据桶指针 + 10
+		newIndex := make([]*Root, cap(m.index)*2, cap(m.index)*2)
 
-			// m.index = append(m.index, newIndex...) 不使用  append
-			// 扩容复制原有的下标
-			for i := 0; i < cap(newIndex); i++ {
-				// 老的索引必须小于新索引的范围
-				if i < cap(m.index) {
-					newIndex[i] = m.index[i]
-				}
-				if i >= cap(m.index) {
-					// 只初始化新加的索引
-					root := new(Root)
-					mapItems := make([]*MapItem, 10, 10)
-					root.data = mapItems
-					root.size = cap(mapItems)
-					root.lastIndex = 0
-					newIndex[i] = root
-				}
+		// m.index = append(m.index, newIndex...) 不使用  append
+		// 扩容复制原有的下标
+		for i := 0; i < cap(newIndex); i++ {
+			// 老的索引必须小于新索引的范围
+			if i < cap(m.index) {
+				newIndex[i] = m.index[i]
 			}
-			m.index = newIndex
-			m.size = cap(m.index)
-			// 因为扩容了重新生成bucketIndex
-			// bucketIndex = m.Index(k)
-			root = m.index[bucketIndex]
+			if i >= cap(m.index) {
+				// 只初始化新加的索引
+				root := new(Root)
+				mapItems := make([]*MapItem, 10, 10)
+				root.data = mapItems
+				root.size = cap(mapItems)
+				root.lastIndex = 0
+				newIndex[i] = root
+			}
 		}
+		m.index = newIndex
+		m.size = cap(m.index)
+		// 因为扩容了重新生成bucketIndex
+		// bucketIndex = m.Index(k)
+		root = m.index[bucketIndex]
+
 		m.write(k, v, root, bucketIndex)
 	} else {
 		m.write(k, v, root, bucketIndex)
