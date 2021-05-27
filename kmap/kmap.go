@@ -49,11 +49,11 @@ type Map struct {
 // 2.
 func New() KMap {
 	m := new(Map)
-	m.index = make([]*Root, 10, 10)
+	m.index = make([]*Root, 2, 2)
 	// 初始化索引
 	for i := range m.index {
 		root := new(Root)
-		mapItems := make([]*MapItem, 100, 100)
+		mapItems := make([]*MapItem, 10, 10)
 		root.data = mapItems
 		root.size = cap(mapItems)
 		m.index[i] = root
@@ -112,7 +112,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 			if i >= cap(m.index) {
 				// 只初始化新加的索引
 				root := new(Root)
-				mapItems := make([]*MapItem, 100, 100)
+				mapItems := make([]*MapItem, 10, 10)
 				root.data = mapItems
 				root.size = cap(mapItems)
 				root.lastIndex = 0
@@ -122,7 +122,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		m.index = newIndex
 		m.size = cap(m.index)
 		root = m.index[bucketIndex]
-
+		m.write(k, v, root, bucketIndex)
 	} else {
 		m.write(k, v, root, bucketIndex)
 	}

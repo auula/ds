@@ -15,7 +15,7 @@ func TestKMap(t *testing.T) {
 	k := fmt.Sprintf("k%d", _randomInt(1024*8))
 	kMap := New()
 	kMap.Put(k, "bar")
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000; i++ {
 		kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), i)
 	}
 
