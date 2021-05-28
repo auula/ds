@@ -120,8 +120,10 @@ func (m *Map) Remove(k interface{}) {
 	}
 	coordinate := _index[k]
 	go m.GetBucket(coordinate[0]).Del(coordinate[1])
-	delete(_index, k) // 移除索引
 
+	m.Lock()
+	delete(_index, k) // 移除索引
+	m.Unlock()
 }
 
 func (m *Map) Replace(k, v interface{}) {
