@@ -5,7 +5,6 @@
 package kmap
 
 import (
-	"fmt"
 	"hash/crc32"
 	"sync"
 )
@@ -86,7 +85,6 @@ func (m *Map) GetBucket(index int) *Bucket {
 }
 
 func (m *Map) Get(k interface{}) interface{} {
-	fmt.Println(_index[k])
 	// 检测是否存在
 	if _, ok := _index[k]; !ok {
 		return nil
@@ -95,6 +93,7 @@ func (m *Map) Get(k interface{}) interface{} {
 }
 
 func (m *Map) Put(k, v interface{}) bool {
+
 	if _, ok := _index[k]; ok {
 		return false
 	}
@@ -104,15 +103,14 @@ func (m *Map) Put(k, v interface{}) bool {
 
 	// 通过Bucket的索引拿到桶
 	bucket := m.GetBucket(bucketIndex)
-	// 如果找到了说明已经满了，让Bucket扩容 纵向水平扩容
-	if bucket.tailPointer == bucket.size {
-		bucket.resize()
-	}
 
-	bucket.data[bucket.tailPointer] = &MapItem{k: k, v: v}
+	// 如果找到了说明已经满了，让Bucket扩容 纵向水平扩容
+	go bucket.Add(&MapItem{k: k, v: v})
+
+	m.Lock()
 	_index[k] = [2]int{bucketIndex, bucket.tailPointer}
-	bucket.tailPointer++
-	fmt.Println(_index[k])
+	m.Unlock()
+
 	return true
 }
 
@@ -120,9 +118,10 @@ func (m *Map) Remove(k interface{}) {
 	if _, ok := _index[k]; !ok {
 		return
 	}
-	m.GetBucket(_index[k][0]).data[_index[k][1]] = nil
-	m.GetBucket(_index[k][0]).tailPointer--
+	coordinate := _index[k]
+	go m.GetBucket(coordinate[0]).Del(coordinate[1])
 	delete(_index, k) // 移除索引
+
 }
 
 func (m *Map) Replace(k, v interface{}) {
@@ -136,7 +135,7 @@ func (m *Map) Capacity() int {
 	for i := range m.entry {
 		sum += m.entry[i].size
 	}
-	return m.size * sum
+	return sum
 }
 
 func (b *Bucket) resize() {
@@ -156,6 +155,20 @@ func (b *Bucket) resize() {
 	b.size = cap(newData)
 	b.data = newData
 	b.tailPointer = i
+}
+
+func (b *Bucket) Add(v *MapItem) {
+	b.Lock()
+	if b.tailPointer == b.size {
+		b.resize()
+	}
+	b.data[b.tailPointer] = v
+	b.tailPointer++
+	b.Unlock()
+}
+
+func (b *Bucket) Del(x int) {
+	b.data[x] = nil
 }
 
 func _stringToCode(s string) int {
