@@ -13,12 +13,16 @@ import (
 	"hash/crc32"
 )
 
-// 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
-var _index map[interface{}][2]int
+var (
+	// 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
+	_index      map[interface{}][2]int
+	_dirtyIndex []int
+)
 
 // 创建的时候计算
 func init() {
 	_index = make(map[interface{}][2]int, 100)
+	_dirtyIndex = make([]int, 1024)
 }
 
 type KMap interface {
@@ -53,7 +57,7 @@ func New() KMap {
 	// 初始化索引
 	for i := range m.index {
 		root := new(Root)
-		mapItems := make([]*MapItem, 10, 10)
+		mapItems := make([]*MapItem, 2, 2)
 		root.data = mapItems
 		root.size = cap(mapItems)
 		m.index[i] = root
@@ -98,6 +102,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 			if root.lastIndex == root.size {
 				bucketIndex++
 			}
+
 		}
 
 		// 触发扩容
@@ -105,23 +110,23 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 		// 下次计算hash的时候就偏移计算数据桶指针 + 10
 		newIndex := make([]*Root, cap(m.index)*2, cap(m.index)*2)
 
-		// m.index = append(m.index, newIndex...) 不使用  append
-		// 扩容复制原有的下标
+		// m.index = append(m.index, newIndex...) // 不使用  append
+
 		for i := 0; i < cap(newIndex); i++ {
-			// 老的索引必须小于新索引的范围
-			if i < cap(m.index) {
-				newIndex[i] = m.index[i]
-			}
-			if i >= cap(m.index) {
-				// 只初始化新加的索引
-				root := new(Root)
-				mapItems := make([]*MapItem, 10, 10)
-				root.data = mapItems
-				root.size = cap(mapItems)
-				root.lastIndex = 0
-				newIndex[i] = root
-			}
+			// 只初始化新加的索引
+			root := new(Root)
+			mapItems := make([]*MapItem, 2, 2)
+			root.data = mapItems
+			root.size = cap(mapItems)
+			root.lastIndex = 0
+			newIndex[i] = root
 		}
+
+		// 扩容复制原有的下标
+		for i := 0; i < cap(m.index); i++ {
+			newIndex[i] = m.index[i]
+		}
+
 		m.index = newIndex
 		m.size = cap(m.index)
 		// 因为扩容了重新生成bucketIndex
@@ -137,6 +142,7 @@ func (m *Map) Put(k interface{}, v interface{}) bool {
 }
 
 func (m *Map) write(k, v interface{}, root *Root, bucketIndex int) {
+
 	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
 	// fmt.Println("root.lastIndex", root.lastIndex)
 	root.data[root.lastIndex] = &MapItem{k: k, v: v}
