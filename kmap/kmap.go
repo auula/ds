@@ -2,15 +2,12 @@
 // Author: Jaco Ding <deen.job@qq.com>
 // Date: 2021/5/26 - 10:52 下午 - UTC/GMT+08:00
 
-// 自己设计的map 超大型单机并发
-
 package kmap
 
 import (
-	"crypto/rand"
-	"encoding/binary"
-	"fmt"
 	"hash/crc32"
+	"sort"
+	"sync"
 )
 
 var (
@@ -22,7 +19,7 @@ var (
 // 创建的时候计算
 func init() {
 	_index = make(map[interface{}][2]int, 100)
-	_dirtyIndex = make([]int, 1024)
+	_dirtyIndex = make([]int, 0, 1024)
 }
 
 type KMap interface {
@@ -33,161 +30,74 @@ type KMap interface {
 	Debug()
 }
 
-type Root struct {
-	lastIndex int
-	data      []*MapItem
-	size      int // 这个确定的
-}
-
 type MapItem struct {
 	k, v interface{}
 }
 
+type Bucket struct {
+	tailPointer  int
+	data         []*MapItem
+	sync.RWMutex     // 各个分片Map各自的锁 缩小锁的资源颗粒度
+	size         int // 这个确定的
+}
+
 type Map struct {
-	capacity int
-	size     int
-	index    []*Root
+	//capacity int
+	size  int
+	entry []*Bucket
 }
 
-// 1. for 初始化
-// 2.
-func New() KMap {
-	m := new(Map)
-	m.index = make([]*Root, 2, 2)
-	// 初始化索引
-	for i := range m.index {
-		root := new(Root)
-		mapItems := make([]*MapItem, 2, 2)
-		root.data = mapItems
-		root.size = cap(mapItems)
-		m.index[i] = root
-	}
-	m.size = cap(m.index)
-	return m
-}
-
-func (m *Map) Hash(key interface{}) int {
-	var code int = -1
+func (m *Map) Hash(key interface{}) (code int) {
 	switch key.(type) {
 	case string:
 		code = _stringToCode(key.(string))
-	case int, int64:
-		// 使用crypto/rand生成随机数 然后 计算哈希
-		code = _randomInt(m.size) * 8
+	case int:
+		code = key.(int)
+	default:
+		panic("unsupported type")
 	}
-	return code
+	return
 }
 
 // 通过哈希计算 得到root节点下标
-func (m *Map) Index(k interface{}) int {
+func (m *Map) index(k interface{}) int {
 	return m.Hash(k) % m.size
 }
 
-func (m *Map) Put(k interface{}, v interface{}) bool {
-
-	// 已经存在
-	if _, ok := _index[k]; ok {
-		return false
-	}
-
-	// 拿到所在的组，满了重新做一次记录
-	bucketIndex := m.Index(k)
-	root := m.index[bucketIndex]
-	if root.lastIndex == root.size {
-		//flag := false
-		// 容量已经满了,移动主指针
-		fmt.Println(cap(m.index))
-
-		for _, root := range m.index {
-			if root.lastIndex == root.size {
-				bucketIndex++
-			}
-
-		}
-
-		// 触发扩容
-		// 扩容之后前面位置的数据桶就要减少负载
-		// 下次计算hash的时候就偏移计算数据桶指针 + 10
-		newIndex := make([]*Root, cap(m.index)*2, cap(m.index)*2)
-
-		// m.index = append(m.index, newIndex...) // 不使用  append
-
-		for i := 0; i < cap(newIndex); i++ {
-			// 只初始化新加的索引
-			root := new(Root)
-			mapItems := make([]*MapItem, 2, 2)
-			root.data = mapItems
-			root.size = cap(mapItems)
-			root.lastIndex = 0
-			newIndex[i] = root
-		}
-
-		// 扩容复制原有的下标
-		for i := 0; i < cap(m.index); i++ {
-			newIndex[i] = m.index[i]
-		}
-
-		m.index = newIndex
-		m.size = cap(m.index)
-		// 因为扩容了重新生成bucketIndex
-		// bucketIndex = m.Index(k)
-		root = m.index[bucketIndex]
-
-		m.write(k, v, root, bucketIndex)
-	} else {
-		m.write(k, v, root, bucketIndex)
-	}
-
-	return true
-}
-
-func (m *Map) write(k, v interface{}, root *Root, bucketIndex int) {
-
-	// 通过尾部指针找到数组当前在哪个位置是空的，把元素插入
-	// fmt.Println("root.lastIndex", root.lastIndex)
-	root.data[root.lastIndex] = &MapItem{k: k, v: v}
-	// 更新外部索引
-	_index[k] = [2]int{bucketIndex, root.lastIndex}
-	root.lastIndex++
-}
-
-func addressing(bucketIndex int, p *Map) int {
-	//bucketIndex++
-	//if bucketIndex == p. {
-	//
-	//}
-	return 0
-}
-
-func (m *Map) Debug() {
-	fmt.Println(m.index[9].data[1])
-	fmt.Println(m.index[8].data[2])
-	fmt.Println(m.index[7].data[3])
-	fmt.Println(m.index[6].data[4])
+// 通过索引拿到数据桶
+func (m *Map) GetBucket(index int) *Bucket {
+	return m.entry[index]
 }
 
 func (m *Map) Get(k interface{}) interface{} {
-	// 已经存在
+	// 检测是否存在
 	if _, ok := _index[k]; !ok {
 		return nil
 	}
-	// 直接通过坐标拿取数据 这样获取数据的时间复杂度 就是 O(1)
-	// 大大提高拿取数据的性能
-	return m.index[_index[k][0]].data[_index[k][1]].v
+	return m.entry[_index[k][0]].data[_index[k][1]].v
 }
 
-func (m *Map) Remove(k interface{}) {
+func (m *Map) Put(k, v interface{}) bool {
 	if _, ok := _index[k]; !ok {
-		return
+		return false
 	}
-	m.index[_index[k][0]].data[_index[k][1]] = nil
-	m.index[_index[k][0]].lastIndex--
-	delete(_index, k) // 移除索引
-}
 
-func (m *Map) Replace(k, v interface{}) {
-	m.Remove(k)
-	m.Put(k, v)
+	sort.Ints(_dirtyIndex)
+
+	// 拿到所在的组
+	bucketIndex := m.index(k)
+
+	// 通过Bucket的索引检测是否满了，如果找到了说明已经满了，让Bucket扩容 竖向
+	if binarySearch(bucketIndex, 0, len(_dirtyIndex), _dirtyIndex) == -1 {
+		bucket := m.GetBucket(bucketIndex)
+		bucket.data[bucket.tailPointer] = &MapItem{k: k, v: v}
+		_index[k] = [2]int{bucketIndex, bucket.tailPointer}
+		bucket.tailPointer++
+	} else {
+
+	}
+
+	return true
 }
 
 func _stringToCode(s string) int {
@@ -202,8 +112,19 @@ func _stringToCode(s string) int {
 	return 0
 }
 
-func _randomInt(max int) int {
-	var n uint16
-	binary.Read(rand.Reader, binary.LittleEndian, &n)
-	return int(n) % max
+func binarySearch(v, left, right int, arr []int) int {
+	if left > right {
+		return -1
+	}
+	mid := (left + right) / 2
+	if arr[mid] == v {
+		return mid // index
+	}
+	if arr[mid] < v {
+		return binarySearch(v, mid+1, right, arr)
+	}
+	if arr[mid] > v {
+		return binarySearch(v, left, mid-1, arr)
+	}
+	return -1
 }
