@@ -5,21 +5,21 @@
 package kmap
 
 import (
+	"fmt"
 	"hash/crc32"
-	"sort"
 	"sync"
 )
 
+// 深挖map读写性能
+
 var (
 	// 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
-	_index      map[interface{}][2]int
-	_dirtyIndex []int
+	_index map[interface{}][2]int
 )
 
 // 创建的时候计算
 func init() {
 	_index = make(map[interface{}][2]int, 100)
-	_dirtyIndex = make([]int, 0, 1024)
 }
 
 type KMap interface {
@@ -27,7 +27,7 @@ type KMap interface {
 	Replace(k, v interface{})
 	Get(k interface{}) interface{}
 	Remove(k interface{})
-	Debug()
+	Capacity() int
 }
 
 type MapItem struct {
@@ -42,9 +42,25 @@ type Bucket struct {
 }
 
 type Map struct {
-	//capacity int
-	size  int
+	size  int // size 是entry的个数
 	entry []*Bucket
+	sync.Mutex
+}
+
+// 1. for 初始化
+func New() KMap {
+	m := new(Map)
+	m.entry = make([]*Bucket, 8)
+	// 初始化索引
+	for i := range m.entry {
+		bk := new(Bucket)
+		mapItems := make([]*MapItem, 20)
+		bk.data = mapItems
+		bk.size = cap(mapItems)
+		m.entry[i] = bk
+	}
+	m.size = cap(m.entry)
+	return m
 }
 
 func (m *Map) Hash(key interface{}) (code int) {
@@ -70,6 +86,7 @@ func (m *Map) GetBucket(index int) *Bucket {
 }
 
 func (m *Map) Get(k interface{}) interface{} {
+	fmt.Println(_index[k])
 	// 检测是否存在
 	if _, ok := _index[k]; !ok {
 		return nil
@@ -78,26 +95,67 @@ func (m *Map) Get(k interface{}) interface{} {
 }
 
 func (m *Map) Put(k, v interface{}) bool {
-	if _, ok := _index[k]; !ok {
+	if _, ok := _index[k]; ok {
 		return false
 	}
 
-	sort.Ints(_dirtyIndex)
-
-	// 拿到所在的组
+	// 通过计算拿到所在的数据桶下标
 	bucketIndex := m.index(k)
 
-	// 通过Bucket的索引检测是否满了，如果找到了说明已经满了，让Bucket扩容 竖向
-	if binarySearch(bucketIndex, 0, len(_dirtyIndex), _dirtyIndex) == -1 {
-		bucket := m.GetBucket(bucketIndex)
-		bucket.data[bucket.tailPointer] = &MapItem{k: k, v: v}
-		_index[k] = [2]int{bucketIndex, bucket.tailPointer}
-		bucket.tailPointer++
-	} else {
-
+	// 通过Bucket的索引拿到桶
+	bucket := m.GetBucket(bucketIndex)
+	// 如果找到了说明已经满了，让Bucket扩容 纵向水平扩容
+	if bucket.tailPointer == bucket.size {
+		bucket.resize()
 	}
 
+	bucket.data[bucket.tailPointer] = &MapItem{k: k, v: v}
+	_index[k] = [2]int{bucketIndex, bucket.tailPointer}
+	bucket.tailPointer++
+	fmt.Println(_index[k])
 	return true
+}
+
+func (m *Map) Remove(k interface{}) {
+	if _, ok := _index[k]; !ok {
+		return
+	}
+	m.GetBucket(_index[k][0]).data[_index[k][1]] = nil
+	m.GetBucket(_index[k][0]).tailPointer--
+	delete(_index, k) // 移除索引
+}
+
+func (m *Map) Replace(k, v interface{}) {
+	m.Remove(k)
+	m.Put(k, v)
+}
+
+// 会实时返回当前KMap的容量
+func (m *Map) Capacity() int {
+	sum := 0
+	for i := range m.entry {
+		sum += m.entry[i].size
+	}
+	return m.size * sum
+}
+
+func (b *Bucket) resize() {
+	b.Lock()
+	defer b.Unlock()
+	newData := make([]*MapItem, cap(b.data)*2)
+	i := 0
+	for i = range newData {
+		// 扩容还原老的数据
+		if i < cap(b.data) {
+			newData[i] = b.data[i]
+		} else {
+			break
+		}
+	}
+	// 尾指针永远指向空位
+	b.size = cap(newData)
+	b.data = newData
+	b.tailPointer = i
 }
 
 func _stringToCode(s string) int {
@@ -110,21 +168,4 @@ func _stringToCode(s string) int {
 	}
 	// v == MinInt
 	return 0
-}
-
-func binarySearch(v, left, right int, arr []int) int {
-	if left > right {
-		return -1
-	}
-	mid := (left + right) / 2
-	if arr[mid] == v {
-		return mid // index
-	}
-	if arr[mid] < v {
-		return binarySearch(v, mid+1, right, arr)
-	}
-	if arr[mid] > v {
-		return binarySearch(v, left, mid-1, arr)
-	}
-	return -1
 }

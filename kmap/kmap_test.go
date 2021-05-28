@@ -7,6 +7,8 @@
 package kmap
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"testing"
 )
@@ -14,14 +16,13 @@ import (
 func TestKMap(t *testing.T) {
 	k := fmt.Sprintf("k%d", _randomInt(1024*8))
 	kMap := New()
-	kMap.Put(k, "bar")
-	for i := 0; i < 1000; i++ {
-		kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), i)
-	}
+	//kMap.Put(k, "bar")
+	//for i := 0; i < 1000; i++ {
+	//	kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), i)
+	//}
 
-	// kMap.Remove("foo")
-	// kMap.Put("foo", "bar")
-	kMap.Debug()
+	//kMap.Remove("foo")
+	kMap.Put("foo", "bar")
 
 	t.Log(kMap.Get(k))
 }
@@ -55,4 +56,11 @@ func BenchmarkWriteMap(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		kMap.Put(fmt.Sprintf("k%d", _randomInt(1024)), n)
 	}
+}
+
+func _randomInt(max int) int {
+	var n uint16
+	binary.Read(rand.Reader, binary.LittleEndian, &n)
+	return int(n) % max
+
 }
