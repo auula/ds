@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -17,12 +18,22 @@ func TestKMap(t *testing.T) {
 
 	kMap := New()
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100000; i++ {
 		kMap.Put(i, i)
 	}
 
 	t.Log(kMap.Get(999))
 	t.Log(kMap.Capacity())
+}
+
+func TestMap(t *testing.T) {
+
+	var maps sync.Map
+
+	for i := 0; i < 100000; i++ {
+		maps.Store(i, i)
+	}
+
 }
 
 func TestKMapCRUD(t *testing.T) {
