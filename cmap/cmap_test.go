@@ -22,13 +22,10 @@ func BenchmarkConcurrentMap(b *testing.B) {
 
 	for i := 0; i < 5; i++ {
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
-
 			b.N = 1000000
-
 			wg := sync.WaitGroup{}
 			wg.Add(b.N * 2)
 			for i := 0; i < b.N; i++ {
-
 				// 模拟并发随机写
 				go func(key string, val interface{}) {
 					concurrentMap.Set(key, val)
