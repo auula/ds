@@ -20,10 +20,10 @@ func BenchmarkConcurrentMap(b *testing.B) {
 	nums := 10000
 	b.ResetTimer()
 
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 5; i++ {
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
 
-			b.N = 10000000
+			b.N = 1000000
 
 			wg := sync.WaitGroup{}
 			wg.Add(b.N * 2)
