@@ -43,11 +43,11 @@ type KMap struct {
 // 1. for 初始化
 func New() Map {
 	m := new(KMap)
-	m.entry = make([]*Bucket, 8)
+	m.entry = make([]*Bucket, 32)
 	// 初始化索引
 	for i := range m.entry {
 		bk := new(Bucket)
-		mapItems := make([]*MapItem, 1024<<10)
+		mapItems := make([]*MapItem, 1024<<8)
 		bk.data = mapItems
 		bk.size = cap(mapItems)
 		m.entry[i] = bk

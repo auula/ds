@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"strconv"
 	"sync"
 	"testing"
 )
@@ -71,4 +72,76 @@ func _randomInt(max int) int {
 	binary.Read(rand.Reader, binary.LittleEndian, &n)
 	return int(n) % max
 
+}
+
+func BenchmarkKMapShared(b *testing.B) {
+
+	m := New()
+	nums := 10000
+	b.ResetTimer()
+
+	for i := 0; i < 5; i++ {
+		b.Run(strconv.Itoa(i), func(b *testing.B) {
+
+			b.N = 1000000
+
+			wg := sync.WaitGroup{}
+			wg.Add(b.N * 2)
+			for i := 0; i < b.N; i++ {
+
+				// 模拟并发随机写
+				go func(key string, val interface{}) {
+					m.Put(key, val)
+					wg.Done()
+				}(fmt.Sprintf("k%d", _randomInt(nums)), _randomInt(nums))
+
+				// // 模拟并发随机读
+				go func(key string) {
+					m.Get(key)
+					wg.Done()
+				}(fmt.Sprintf("k%d", _randomInt(nums)))
+
+			}
+			wg.Wait()
+		})
+	}
+}
+
+func BenchmarkMapShared(b *testing.B) {
+
+	nums := 10000
+	mux := sync.RWMutex{}
+	maps := make(map[string]interface{}, nums)
+
+	b.ResetTimer()
+
+	for i := 0; i < 5; i++ {
+		b.Run(strconv.Itoa(i), func(b *testing.B) {
+
+			b.N = 10000000
+
+			wg := sync.WaitGroup{}
+			wg.Add(b.N * 2)
+			for i := 0; i < b.N; i++ {
+
+				// 模拟并发随机写
+				go func(key string, val interface{}) {
+					mux.Lock()
+					maps[key] = val
+					mux.Unlock()
+					wg.Done()
+				}(fmt.Sprintf("k%d", _randomInt(nums)), _randomInt(nums))
+
+				// // 模拟并发随机读
+				go func(key string) {
+					mux.Lock()
+					_ = maps[key]
+					mux.Unlock()
+					wg.Done()
+				}(fmt.Sprintf("k%d", _randomInt(nums)))
+
+			}
+			wg.Wait()
+		})
+	}
 }
