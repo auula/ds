@@ -41,6 +41,12 @@ func (m *blockMap) get(k interface{}) interface{} {
 	return v
 }
 
+func (m *blockMap) Del(k interface{}) {
+	m.Lock()
+	delete(m.items, k)
+	m.Unlock()
+}
+
 func New(size int) *ConcurrentMap {
 	c := new(ConcurrentMap)
 	c.size = size
@@ -70,9 +76,7 @@ func (m *ConcurrentMap) Get(k interface{}) interface{} {
 
 func (m *ConcurrentMap) Remove(k interface{}) {
 	b := m.blockMap(k)
-	b.Lock()
-	delete(b.items, k)
-	b.Unlock()
+	b.Del(k)
 }
 
 func (m *ConcurrentMap) HashCode(key interface{}) (code int) {

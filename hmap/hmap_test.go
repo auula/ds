@@ -80,7 +80,7 @@ func BenchmarkKMapShared(b *testing.B) {
 	nums := 10000
 	b.ResetTimer()
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 2; i++ {
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
 
 			b.N = 1000000
