@@ -16,13 +16,13 @@ import (
 )
 
 func BenchmarkConcurrentMap(b *testing.B) {
-	concurrentMap := New(32)
-	nums := 10000
+	concurrentMap := New(32 * 2)
+	nums := 100000
 	b.ResetTimer()
 
 	for i := 0; i < 5; i++ {
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
-			b.N = 1000000
+			b.N = 10000000
 			wg := sync.WaitGroup{}
 			wg.Add(b.N * 2)
 			for i := 0; i < b.N; i++ {
