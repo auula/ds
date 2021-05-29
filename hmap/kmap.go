@@ -2,7 +2,7 @@
 // Author: Jaco Ding <deen.job@qq.com>
 // Date: 2021/5/28 - 10:52 下午 - UTC/GMT+08:00
 
-package kmap
+package hmap
 
 import (
 	"hash/crc32"
@@ -35,14 +35,14 @@ type Bucket struct {
 	sync.RWMutex     // 各个分片Map各自的锁 缩小锁的资源颗粒度
 }
 
-type KMap struct {
+type HMap struct {
 	size  int // size 是entry的个数
 	entry []*Bucket
 }
 
 // 1. for 初始化
 func New() Map {
-	m := new(KMap)
+	m := new(HMap)
 	m.entry = make([]*Bucket, 32)
 	// 初始化索引
 	for i := range m.entry {
@@ -56,7 +56,7 @@ func New() Map {
 	return m
 }
 
-func (m *KMap) Hash(key interface{}) (code int) {
+func (m *HMap) Hash(key interface{}) (code int) {
 	switch key.(type) {
 	case string:
 		code = _stringToCode(key.(string))
@@ -69,16 +69,16 @@ func (m *KMap) Hash(key interface{}) (code int) {
 }
 
 // 通过哈希计算 得到root节点下标
-func (m *KMap) index(k interface{}) int {
+func (m *HMap) index(k interface{}) int {
 	return m.Hash(k) % m.size
 }
 
 // 通过索引拿到数据桶
-func (m *KMap) GetBucket(index int) *Bucket {
+func (m *HMap) GetBucket(index int) *Bucket {
 	return m.entry[index]
 }
 
-func (m *KMap) Get(k interface{}) interface{} {
+func (m *HMap) Get(k interface{}) interface{} {
 	// 检测是否存在
 	if _, ok := _index.Load(k); !ok {
 		return nil
@@ -89,7 +89,7 @@ func (m *KMap) Get(k interface{}) interface{} {
 	return m.entry[index.([2]int)[0]].data[index.([2]int)[1]].v
 }
 
-func (m *KMap) Put(k, v interface{}) bool {
+func (m *HMap) Put(k, v interface{}) bool {
 
 	if _, ok := _index.Load(k); ok {
 		return false
@@ -114,7 +114,7 @@ func (m *KMap) Put(k, v interface{}) bool {
 	return true
 }
 
-func (m *KMap) Remove(k interface{}) {
+func (m *HMap) Remove(k interface{}) {
 	if _, ok := _index.Load(k); !ok {
 		return
 	}
@@ -124,13 +124,13 @@ func (m *KMap) Remove(k interface{}) {
 	_index.Delete(k)
 }
 
-func (m *KMap) Replace(k, v interface{}) {
+func (m *HMap) Replace(k, v interface{}) {
 	m.Remove(k)
 	m.Put(k, v)
 }
 
 // 会实时返回当前KMap的容量
-func (m *KMap) Capacity() int {
+func (m *HMap) Capacity() int {
 	sum := 0
 	for i := range m.entry {
 		sum += m.entry[i].size

@@ -4,7 +4,7 @@
 
 // todo...
 
-package kmap
+package hmap
 
 import (
 	"crypto/rand"
