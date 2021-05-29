@@ -5,6 +5,7 @@
 package kmap
 
 import (
+	"fmt"
 	"hash/crc32"
 	"sync"
 )
@@ -13,13 +14,14 @@ import (
 
 var (
 	// 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
-	_index map[interface{}][2]int
+	// _index map[interface{}][2]int
+	_index sync.Map
 )
 
-// 创建的时候计算
-func init() {
-	_index = make(map[interface{}][2]int, 100)
-}
+//// 创建的时候计算
+//func init() {
+//	_index = make(map[interface{}][2]int, 100)
+//}
 
 type KMap interface {
 	Put(k, v interface{}) bool
@@ -36,14 +38,13 @@ type MapItem struct {
 type Bucket struct {
 	tailPointer  int
 	data         []*MapItem
-	sync.RWMutex     // 各个分片Map各自的锁 缩小锁的资源颗粒度
 	size         int // 这个确定的
+	sync.RWMutex     // 各个分片Map各自的锁 缩小锁的资源颗粒度
 }
 
 type Map struct {
 	size  int // size 是entry的个数
 	entry []*Bucket
-	sync.Mutex
 }
 
 // 1. for 初始化
@@ -53,7 +54,7 @@ func New() KMap {
 	// 初始化索引
 	for i := range m.entry {
 		bk := new(Bucket)
-		mapItems := make([]*MapItem, 1024<<10)
+		mapItems := make([]*MapItem, 1024*32)
 		bk.data = mapItems
 		bk.size = cap(mapItems)
 		m.entry[i] = bk
@@ -86,15 +87,20 @@ func (m *Map) GetBucket(index int) *Bucket {
 
 func (m *Map) Get(k interface{}) interface{} {
 	// 检测是否存在
-	if _, ok := _index[k]; !ok {
+	if _, ok := _index.Load(k); !ok {
 		return nil
 	}
-	return m.entry[_index[k][0]].data[_index[k][1]].v
+	index, _ := _index.Load(k)
+
+	// 直接通过缓存的索引拿数据 因为是切片时间复杂度 O(1)
+	coordinate := index.([2]int)
+	fmt.Println(m.entry)
+	return m.entry[coordinate[0]].data[coordinate[1]].v
 }
 
 func (m *Map) Put(k, v interface{}) bool {
 
-	if _, ok := _index[k]; ok {
+	if _, ok := _index.Load(k); ok {
 		return false
 	}
 
@@ -104,26 +110,21 @@ func (m *Map) Put(k, v interface{}) bool {
 	// 通过Bucket的索引拿到桶
 	bucket := m.GetBucket(bucketIndex)
 
-	// 如果找到了说明已经满了，让Bucket扩容 纵向水平扩容
-	go bucket.Add(&MapItem{k: k, v: v})
+	// 如果找到了说明已经满了，让Bucket扩容 纵向水平扩容 待实现
+	bucket.Add(&MapItem{k: k, v: v})
 
-	m.Lock()
-	_index[k] = [2]int{bucketIndex, bucket.tailPointer}
-	m.Unlock()
-
+	_index.Store(k, [2]int{bucketIndex, bucket.tailPointer})
 	return true
 }
 
 func (m *Map) Remove(k interface{}) {
-	if _, ok := _index[k]; !ok {
+	if _, ok := _index.Load(k); !ok {
 		return
 	}
-	coordinate := _index[k]
-	go m.GetBucket(coordinate[0]).Del(coordinate[1])
-
-	m.Lock()
-	delete(_index, k) // 移除索引
-	m.Unlock()
+	coordinate, _ := _index.Load(k)
+	m.GetBucket(coordinate.([2]int)[0]).Del(coordinate.([2]int)[1])
+	// 移除索引
+	_index.Delete(k)
 }
 
 func (m *Map) Replace(k, v interface{}) {

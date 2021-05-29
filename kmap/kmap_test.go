@@ -22,8 +22,9 @@ func TestKMap(t *testing.T) {
 		kMap.Put(i, i)
 	}
 
-	t.Log(kMap.Get(999))
-	t.Log(kMap.Capacity())
+	for i := 0; i < 100000; i++ {
+		kMap.Get(i)
+	}
 }
 
 func TestMap(t *testing.T) {
@@ -32,6 +33,10 @@ func TestMap(t *testing.T) {
 
 	for i := 0; i < 100000; i++ {
 		maps.Store(i, i)
+	}
+
+	for i := 0; i < 100000; i++ {
+		maps.Load(i)
 	}
 
 }
