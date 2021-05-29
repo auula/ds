@@ -18,11 +18,11 @@ func TestKMap(t *testing.T) {
 
 	kMap := New()
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000000; i++ {
 		kMap.Put(i, i)
 	}
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000000-1; i++ {
 		kMap.Get(i)
 	}
 }
@@ -31,7 +31,7 @@ func TestMap(t *testing.T) {
 
 	var maps sync.Map
 
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 1000000; i++ {
 		maps.Store(i, i)
 	}
 

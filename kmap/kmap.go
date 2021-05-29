@@ -5,25 +5,18 @@
 package kmap
 
 import (
-	"fmt"
 	"hash/crc32"
 	"sync"
 )
 
 // 深挖map读写性能
-
 var (
 	// 为了快速查找建立外部索引 k:1,34 就能快速查找到位置
 	// _index map[interface{}][2]int
 	_index sync.Map
 )
 
-//// 创建的时候计算
-//func init() {
-//	_index = make(map[interface{}][2]int, 100)
-//}
-
-type KMap interface {
+type Map interface {
 	Put(k, v interface{}) bool
 	Replace(k, v interface{})
 	Get(k interface{}) interface{}
@@ -42,19 +35,19 @@ type Bucket struct {
 	sync.RWMutex     // 各个分片Map各自的锁 缩小锁的资源颗粒度
 }
 
-type Map struct {
+type KMap struct {
 	size  int // size 是entry的个数
 	entry []*Bucket
 }
 
 // 1. for 初始化
-func New() KMap {
-	m := new(Map)
+func New() Map {
+	m := new(KMap)
 	m.entry = make([]*Bucket, 8)
 	// 初始化索引
 	for i := range m.entry {
 		bk := new(Bucket)
-		mapItems := make([]*MapItem, 1024*32)
+		mapItems := make([]*MapItem, 1024<<10)
 		bk.data = mapItems
 		bk.size = cap(mapItems)
 		m.entry[i] = bk
@@ -63,7 +56,7 @@ func New() KMap {
 	return m
 }
 
-func (m *Map) Hash(key interface{}) (code int) {
+func (m *KMap) Hash(key interface{}) (code int) {
 	switch key.(type) {
 	case string:
 		code = _stringToCode(key.(string))
@@ -76,16 +69,16 @@ func (m *Map) Hash(key interface{}) (code int) {
 }
 
 // 通过哈希计算 得到root节点下标
-func (m *Map) index(k interface{}) int {
+func (m *KMap) index(k interface{}) int {
 	return m.Hash(k) % m.size
 }
 
 // 通过索引拿到数据桶
-func (m *Map) GetBucket(index int) *Bucket {
+func (m *KMap) GetBucket(index int) *Bucket {
 	return m.entry[index]
 }
 
-func (m *Map) Get(k interface{}) interface{} {
+func (m *KMap) Get(k interface{}) interface{} {
 	// 检测是否存在
 	if _, ok := _index.Load(k); !ok {
 		return nil
@@ -93,12 +86,10 @@ func (m *Map) Get(k interface{}) interface{} {
 	index, _ := _index.Load(k)
 
 	// 直接通过缓存的索引拿数据 因为是切片时间复杂度 O(1)
-	coordinate := index.([2]int)
-	fmt.Println(m.entry)
-	return m.entry[coordinate[0]].data[coordinate[1]].v
+	return m.entry[index.([2]int)[0]].data[index.([2]int)[1]].v
 }
 
-func (m *Map) Put(k, v interface{}) bool {
+func (m *KMap) Put(k, v interface{}) bool {
 
 	if _, ok := _index.Load(k); ok {
 		return false
@@ -110,14 +101,20 @@ func (m *Map) Put(k, v interface{}) bool {
 	// 通过Bucket的索引拿到桶
 	bucket := m.GetBucket(bucketIndex)
 
-	// 如果找到了说明已经满了，让Bucket扩容 纵向水平扩容 待实现
-	bucket.Add(&MapItem{k: k, v: v})
+	bucket.Lock()
+	// 如果找到了说明已经满了，让Bucket扩容 横向水平扩容，此处锁的的颗粒度非常大，严重影响读写性能
+	if bucket.tailPointer == bucket.size {
+		bucket.resize()
+	}
+	bucket.data[bucket.tailPointer] = &MapItem{k: k, v: v}
+	bucket.tailPointer++
+	bucket.Unlock()
+	_index.Store(k, [2]int{bucketIndex, bucket.tailPointer - 1})
 
-	_index.Store(k, [2]int{bucketIndex, bucket.tailPointer})
 	return true
 }
 
-func (m *Map) Remove(k interface{}) {
+func (m *KMap) Remove(k interface{}) {
 	if _, ok := _index.Load(k); !ok {
 		return
 	}
@@ -127,13 +124,13 @@ func (m *Map) Remove(k interface{}) {
 	_index.Delete(k)
 }
 
-func (m *Map) Replace(k, v interface{}) {
+func (m *KMap) Replace(k, v interface{}) {
 	m.Remove(k)
 	m.Put(k, v)
 }
 
 // 会实时返回当前KMap的容量
-func (m *Map) Capacity() int {
+func (m *KMap) Capacity() int {
 	sum := 0
 	for i := range m.entry {
 		sum += m.entry[i].size
@@ -142,8 +139,6 @@ func (m *Map) Capacity() int {
 }
 
 func (b *Bucket) resize() {
-	b.Lock()
-	defer b.Unlock()
 	newData := make([]*MapItem, cap(b.data)*2)
 	i := 0
 	for i = range newData {
@@ -160,18 +155,10 @@ func (b *Bucket) resize() {
 	b.tailPointer = i
 }
 
-func (b *Bucket) Add(v *MapItem) {
-	b.Lock()
-	if b.tailPointer == b.size {
-		b.resize()
-	}
-	b.data[b.tailPointer] = v
-	b.tailPointer++
-	b.Unlock()
-}
-
 func (b *Bucket) Del(x int) {
+	b.Lock()
 	b.data[x] = nil
+	b.Unlock()
 }
 
 func _stringToCode(s string) int {
