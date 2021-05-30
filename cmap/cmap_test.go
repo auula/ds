@@ -169,12 +169,12 @@ func BenchmarkCMap_Get(b *testing.B) {
 
 func BenchmarkCMap(b *testing.B) {
 	concurrentMap := New(32 * 2)
-	nums := 100000
+	nums := 10000
 	b.ResetTimer()
 
 	for i := 0; i < 5; i++ {
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
-			b.N = 10000000
+			b.N = 1000000
 			wg := sync.WaitGroup{}
 			wg.Add(b.N * 2)
 			for i := 0; i < b.N; i++ {
@@ -211,7 +211,7 @@ func BenchmarkSyncMap(b *testing.B) {
 				go func(key string, val interface{}) {
 					m.Store(key, val)
 					wg.Done()
-				}(fmt.Sprintf("k%d", _randomInt(nums)), _randomInt(nums))
+				}(fmt.Sprintf("k%d", 1), _randomInt(nums))
 
 				// // 模拟并发随机读
 				go func(key string) {
