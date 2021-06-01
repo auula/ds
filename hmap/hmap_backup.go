@@ -70,7 +70,7 @@ func (m *HMap) Put(k, v interface{}) {
 func (m *HMap) Get(k interface{}) interface{} {
 	var value interface{}
 	bucket := m.GetBucket(m.HashCode(k))
-	bucket.Lock()
+	bucket.RLock()
 	data := bucket.data
 	for _, v := range data {
 		if v.k.(string) == k {
@@ -78,7 +78,7 @@ func (m *HMap) Get(k interface{}) interface{} {
 			break
 		}
 	}
-	bucket.Unlock()
+	bucket.RUnlock()
 	return value
 }
 
