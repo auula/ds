@@ -26,7 +26,7 @@ func New(size int) *HMap {
 	m.entry = make([]*Bucket, size)
 	for i := range m.entry {
 		bk := new(Bucket)
-		mapItems := make([]*mapItem, 1024)
+		mapItems := make([]*mapItem, 1024<<2)
 		bk.data = mapItems
 		bk.size = cap(mapItems)
 		m.entry[i] = bk
@@ -60,7 +60,7 @@ func (m *HMap) Hash(key interface{}) (code int) {
 }
 
 func (m *HMap) Put(k, v interface{}) {
-	bucket := m.GetBucket(m.HashCode(k))
+	bucket := m.GetBucket(m.HashCode(k, m.size))
 	bucket.Lock()
 	bucket.data[bucket.pointer] = &mapItem{k: k, v: v}
 	bucket.pointer++
@@ -69,7 +69,7 @@ func (m *HMap) Put(k, v interface{}) {
 
 func (m *HMap) Get(k interface{}) interface{} {
 	var value interface{}
-	bucket := m.GetBucket(m.HashCode(k))
+	bucket := m.GetBucket(m.HashCode(k, m.size))
 	bucket.RLock()
 	data := bucket.data
 	for _, v := range data {
@@ -83,13 +83,14 @@ func (m *HMap) Get(k interface{}) interface{} {
 }
 
 func (m *HMap) Remove(k interface{}) {
-	bucket := m.GetBucket(m.HashCode(k))
+	bucket := m.GetBucket(m.HashCode(k, m.size))
 	bucket.Lock()
 	data := bucket.data
 	// 通过下标移除元素
 	for i, v := range data {
 		if v.k.(string) == k {
 			bucket.data = append(bucket.data[:i], bucket.data[i+1:]...)
+			break
 		}
 	}
 	bucket.Unlock()
@@ -100,6 +101,6 @@ func (m *HMap) GetBucket(index int) *Bucket {
 	return m.entry[index]
 }
 
-func (m *HMap) HashCode(k interface{}) int {
-	return m.Hash(k) % m.size
+func (m *HMap) HashCode(k interface{}, n int) int {
+	return m.Hash(k) % n
 }
