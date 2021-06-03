@@ -1,60 +1,74 @@
 package main
 
-import (
-	"fmt"
-	"io"
-)
+import "fmt"
 
 type BinaryNode struct {
 	left  *BinaryNode
 	right *BinaryNode
-	data  int64
+	data  int
 }
 
 type BinaryTree struct {
 	root *BinaryNode
 }
 
-func (t *BinaryTree) insert(data int64) *BinaryTree {
-	if t.root == nil {
-		t.root = &BinaryNode{data: data, left: nil, right: nil}
+func (bt *BinaryTree) insert(v int) *BinaryTree {
+	if bt.root == nil {
+		bt.root = &BinaryNode{data: v}
 	} else {
-		t.root.insert(data)
+		bt.root.insert(v)
 	}
-	return t
+	return bt
 }
 
-func (n *BinaryNode) insert(data int64) {
-	if n == nil {
-		return
-	} else if data <= n.data {
-		if n.left == nil {
-			n.left = &BinaryNode{data: data, left: nil, right: nil}
-		} else {
-			n.left.insert(data)
-		}
-	} else {
-		if n.right == nil {
-			n.right = &BinaryNode{data: data, left: nil, right: nil}
-		} else {
-			n.right.insert(data)
-		}
-	}
-}
+func (node *BinaryNode) insert(v int) {
 
-func print(w io.Writer, node *BinaryNode, ns int, ch rune) {
+	// 递归结束条件
 	if node == nil {
 		return
 	}
 
-	for i := 0; i < ns; i++ {
-		fmt.Fprint(w, " ")
+	if v <= node.data {
+		// 递归查到最后面一个左节点
+		if node.left == nil {
+			node.left = &BinaryNode{data: v}
+		} else {
+			node.left.insert(v)
+		}
+	} else {
+		// 递归查到最后面一个右节点
+		if node.right == nil {
+			node.right = &BinaryNode{data: v}
+		} else {
+			node.right.insert(v)
+		}
 	}
-	fmt.Fprintf(w, "%c:%v\n", ch, node.data)
-	print(w, node.left, ns+2, 'L')
-	print(w, node.right, ns+2, 'R')
+}
+
+func (bt *BinaryTree) pervOrder() {
+	bt.root.pervOrder()
+}
+
+func (node *BinaryNode) pervOrder() {
+	fmt.Println(node.data)
+	if node.left != nil {
+		node.left.pervOrder()
+	}
+	if node.right != nil {
+		node.right.pervOrder()
+	}
 }
 
 func New() *BinaryTree {
 	return &BinaryTree{}
+}
+
+func main() {
+	tree := New()
+	tree.insert(1).
+		insert(2).
+		insert(3).
+		insert(-1).
+		insert(4)
+	tree.pervOrder()
 }
