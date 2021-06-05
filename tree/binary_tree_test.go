@@ -6,17 +6,15 @@ import (
 
 func TestBinaryTree(t *testing.T) {
 	tree := New()
-	tree.insert(100).
-		insert(-20).
-		insert(-50).
-		insert(-15).
-		insert(-60).
-		insert(50).
-		insert(60).
-		insert(55).
-		insert(85).
-		insert(15).
-		insert(5).
-		insert(-10)
-	tree.pervOrder()
+	tree.insert(1).
+		insert(2).
+		insert(3).
+		insert(4).
+		insert(5)
+	//DepthTraverse(tree.root)
+	traverseChan := make(chan interface{})
+	go DepthTraverse(tree.root, traverseChan)
+	for v := range traverseChan {
+		t.Log(v)
+	}
 }

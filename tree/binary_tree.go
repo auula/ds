@@ -65,12 +65,12 @@ func (node *BinaryNode) pervOrder() {
 }
 
 // 递归实现广度优先遍历
-func BreadthTraverse(node *BinaryNode) {
+func BreadthTraverse(node *BinaryNode, channel chan interface{}) {
 	q := queue.New()
 	q.EnQueue(node)
+	defer close(channel)
 	for !q.IsEmpty() {
-		node = q.DeQueue().(*BinaryNode)
-		fmt.Println(node.data)
+		channel <- q.DeQueue().(*BinaryNode).data
 		if node.left != nil {
 			q.EnQueue(node.left)
 		}
@@ -78,15 +78,17 @@ func BreadthTraverse(node *BinaryNode) {
 			q.EnQueue(node.right)
 		}
 	}
+
 }
 
 // 深度优先 我简称w遍历
-func DepthTraverse(node *BinaryNode) {
+func DepthTraverse(node *BinaryNode, channel chan interface{}) {
 	s := stack.New()
+	defer close(channel)
 	// 这个条件就是帮助回滚
 	for node != nil || !s.IsEmpty() {
 		for node != nil {
-			fmt.Println(node.data)
+			channel <- node.data
 			s.Push(node)
 			node = node.left
 		}
@@ -95,19 +97,9 @@ func DepthTraverse(node *BinaryNode) {
 			node = node.right
 		}
 	}
+
 }
 
 func New() *BinaryTree {
 	return &BinaryTree{}
-}
-
-func main() {
-	tree := New()
-	tree.insert(1).
-		insert(2).
-		insert(3).
-		insert(4).
-		insert(5)
-	//DepthTraverse(tree.root)
-	BreadthTraverse(tree.root)
 }
