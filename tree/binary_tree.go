@@ -87,6 +87,7 @@ func DepthTraverse(node *BinaryNode, channel chan interface{}) {
 	defer close(channel)
 	// 这个条件就是帮助回滚
 	for node != nil || !s.IsEmpty() {
+		// 每3个元素看做一个整体
 		for node != nil {
 			channel <- node.data
 			s.Push(node)
