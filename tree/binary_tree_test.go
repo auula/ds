@@ -6,11 +6,11 @@ import (
 
 func TestBinaryTree(t *testing.T) {
 	tree := New()
-	tree.insert(1).
-		insert(2).
-		insert(3).
-		insert(4).
-		insert(5)
+	tree.Insert(1).
+		Insert(2).
+		Insert(3).
+		Insert(4).
+		Insert(5)
 	//DepthTraverse(tree.root)
 	traverseChan := make(chan interface{})
 	go DepthTraverse(tree.root, traverseChan)

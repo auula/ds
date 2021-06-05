@@ -17,7 +17,7 @@ type BinaryTree struct {
 	root *BinaryNode
 }
 
-func (bt *BinaryTree) insert(v int) *BinaryTree {
+func (bt *BinaryTree) Insert(v int) *BinaryTree {
 	if bt.root == nil {
 		bt.root = &BinaryNode{data: v}
 	} else {
