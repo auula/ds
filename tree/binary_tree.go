@@ -26,6 +26,12 @@ func (bt *BinaryTree) Insert(v int) *BinaryTree {
 	return bt
 }
 
+func (bt *BinaryTree) Inserts(values ...interface{}) {
+	for v := range values {
+		bt.Insert(v)
+	}
+}
+
 func (node *BinaryNode) insert(v int) {
 
 	// 递归结束条件
@@ -70,12 +76,13 @@ func BreadthTraverse(node *BinaryNode, channel chan interface{}) {
 	q.EnQueue(node)
 	defer close(channel)
 	for !q.IsEmpty() {
-		channel <- q.DeQueue().(*BinaryNode).data
-		if node.left != nil {
-			q.EnQueue(node.left)
+		tempNode := q.DeQueue().(*BinaryNode)
+		channel <- tempNode.data
+		if tempNode.left != nil {
+			q.EnQueue(tempNode.left)
 		}
-		if node.right != nil {
-			q.EnQueue(node.right)
+		if tempNode.right != nil {
+			q.EnQueue(tempNode.right)
 		}
 	}
 
