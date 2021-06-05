@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/higker/ds/queue"
+	"github.com/higker/ds/stack"
 )
 
 type BinaryNode struct {
@@ -47,7 +50,7 @@ func (node *BinaryNode) insert(v int) {
 	}
 }
 
-func (bt *BinaryTree) pervOrder() {
+func (bt *BinaryTree) PervOrder() {
 	bt.root.pervOrder()
 }
 
@@ -61,6 +64,39 @@ func (node *BinaryNode) pervOrder() {
 	}
 }
 
+// 递归实现广度优先遍历
+func BreadthTraverse(node *BinaryNode) {
+	q := queue.New()
+	q.EnQueue(node)
+	for !q.IsEmpty() {
+		node = q.DeQueue().(*BinaryNode)
+		fmt.Println(node.data)
+		if node.left != nil {
+			q.EnQueue(node.left)
+		}
+		if node.right != nil {
+			q.EnQueue(node.right)
+		}
+	}
+}
+
+// 深度优先 我简称w遍历
+func DepthTraverse(node *BinaryNode) {
+	s := stack.New()
+	// 这个条件就是帮助回滚
+	for node != nil || !s.IsEmpty() {
+		for node != nil {
+			fmt.Println(node.data)
+			s.Push(node)
+			node = node.left
+		}
+		if !s.IsEmpty() {
+			node = s.Pop().(*BinaryNode)
+			node = node.right
+		}
+	}
+}
+
 func New() *BinaryTree {
 	return &BinaryTree{}
 }
@@ -70,7 +106,8 @@ func main() {
 	tree.insert(1).
 		insert(2).
 		insert(3).
-		insert(-1).
-		insert(4)
-	tree.pervOrder()
+		insert(4).
+		insert(5)
+	//DepthTraverse(tree.root)
+	BreadthTraverse(tree.root)
 }

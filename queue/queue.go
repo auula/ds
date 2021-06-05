@@ -43,3 +43,7 @@ func (q *Queue) DeQueue() interface{} {
 	q.size--
 	return front.Val()
 }
+
+func (q *Queue) IsEmpty() bool {
+	return q.size == 0
+}
