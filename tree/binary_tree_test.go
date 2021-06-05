@@ -19,7 +19,7 @@ func TestBinaryTree(t *testing.T) {
 	// }
 
 	traverseChan := make(chan interface{})
-	tree.Inserts(1, 2, 3, 4, 5, 6)
+	tree.Inserts(1, 1, 1, 2, 2, 3, 4)
 	go BreadthTraverse(tree.root, traverseChan)
 	for v := range traverseChan {
 		t.Log(v)

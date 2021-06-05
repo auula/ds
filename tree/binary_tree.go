@@ -26,8 +26,8 @@ func (bt *BinaryTree) Insert(v int) *BinaryTree {
 	return bt
 }
 
-func (bt *BinaryTree) Inserts(values ...interface{}) {
-	for v := range values {
+func (bt *BinaryTree) Inserts(values ...int) {
+	for _, v := range values {
 		bt.Insert(v)
 	}
 }
