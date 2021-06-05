@@ -47,3 +47,7 @@ func (s *Stack) Pop() interface{} {
 	s.size--
 	return node.Val()
 }
+
+func (s *Stack) IsEmpty() bool {
+	return s.size == 0
+}
