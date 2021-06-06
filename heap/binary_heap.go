@@ -1,13 +1,15 @@
 package main
 
+import "fmt"
+
 type BinaryHeap struct {
 	Heap
 }
 
 type Heap interface {
 	Build(values ...int)
-	Insert(v int)
-	TakeTop() int
+	// Insert(v int)
+	// TakeTop() int
 }
 
 type MaxHeap struct {
@@ -21,10 +23,14 @@ func New(heap Heap) *BinaryHeap {
 }
 
 func (mh *MaxHeap) Build(values ...int) {
-	if mh.arr == nil {
-		mh.arr = make([]int, cap(values))
-	}
 	mh.floatUp()
+	for _, v := range values {
+		mh.arr = append(mh.arr, v)
+	}
+	for i := (len(mh.arr) - 2) / 2; i >= 0; i-- {
+		mh.sink(i, len(mh.arr))
+	}
+	fmt.Println(mh.arr)
 }
 
 // 上浮操作
@@ -47,4 +53,26 @@ func (mh *MaxHeap) floatUp() {
 	}
 	// childIndex 肯定是0
 	mh.arr[childIndex] = element
+}
+
+func (mh *MaxHeap) sink(parentIndex, length int) {
+	element := mh.arr[parentIndex]
+	childIndex := 2*parentIndex + 1
+	for childIndex < length {
+		if childIndex+1 < length && mh.arr[childIndex+1] < mh.arr[childIndex] {
+			childIndex++
+		}
+		if element <= mh.arr[childIndex] {
+			break
+		}
+		mh.arr[parentIndex] = mh.arr[childIndex]
+		parentIndex = childIndex
+		childIndex = 2*childIndex + 1
+	}
+	mh.arr[parentIndex] = element
+}
+
+func main() {
+	heap := New(&MaxHeap{})
+	heap.Build(1, 2, 3, 4, 5, 6)
 }
