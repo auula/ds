@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 type MinHeap struct {
@@ -9,7 +10,7 @@ type MinHeap struct {
 }
 
 func New() *MinHeap {
-	return &MinHeap{}
+	return &MinHeap{Element: []int{math.MinInt64}}
 }
 
 func (mh *MinHeap) Build(values ...int) {
@@ -61,8 +62,8 @@ func (H *MinHeap) Length() int {
 
 // 获取最小堆的最小值
 func (H *MinHeap) Min() (int, error) {
-	if len(H.Element) >= 1 {
-		return H.Element[0], nil
+	if len(H.Element) > 1 {
+		return H.Element[1], nil
 	}
 	return 0, fmt.Errorf("heap is empty")
 }
@@ -75,7 +76,7 @@ func (H *MinHeap) String() string {
 func main() {
 
 	heap := New()
-	heap.Build(1, 22, 3, 43, 21)
+	heap.Build(11, 2, 22, 3, 43, 21)
 
 	fmt.Println(heap.Min())
 
