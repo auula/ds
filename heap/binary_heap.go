@@ -61,8 +61,8 @@ func (H *MinHeap) Length() int {
 
 // 获取最小堆的最小值
 func (H *MinHeap) Min() (int, error) {
-	if len(H.Element) > 1 {
-		return H.Element[1], nil
+	if len(H.Element) >= 1 {
+		return H.Element[0], nil
 	}
 	return 0, fmt.Errorf("heap is empty")
 }
