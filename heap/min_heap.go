@@ -1,4 +1,4 @@
-package main
+package heap
 
 import (
 	"fmt"
@@ -23,9 +23,10 @@ func (m *MinHeap) Build(values ...int) {
 func (m *MinHeap) Insert(v int) {
 	m.Element = append(m.Element, v)
 	i := len(m.Element) - 1
-	// 上浮
-	for ; m.Element[i/2] > v; i /= 2 {
+	// 上浮 找到前一个元素的下标拿到元素进行比较
+	for m.Element[i/2] > v {
 		m.Element[i] = m.Element[i/2]
+		i /= 2
 	}
 	m.Element[i] = v
 }
@@ -71,13 +72,4 @@ func (m *MinHeap) Min() (int, error) {
 // MinHeap格式化输出
 func (m *MinHeap) String() string {
 	return fmt.Sprintf("%v", m.Element[1:])
-}
-
-func main() {
-
-	heap := New()
-	heap.Build(11, 2, 22, 3, 43, 21)
-
-	fmt.Println(heap.Min())
-
 }
