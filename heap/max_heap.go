@@ -74,19 +74,3 @@ func (m *MaxHeap) DeleteMax() int {
 	m.sink()
 	return root
 }
-
-func main() {
-	heap := NewMax()
-	heap.Insert(3)
-	heap.Insert(2)
-	heap.Insert(4)
-	heap.Insert(1)
-	heap.Insert(5)
-	fmt.Println(heap.Element)
-	fmt.Println(heap.DeleteMax())
-	fmt.Println(heap.Element)
-	fmt.Println(heap.DeleteMax())
-	fmt.Println(heap.DeleteMax())
-	fmt.Println(heap.DeleteMax())
-	fmt.Println(heap.DeleteMax())
-}
