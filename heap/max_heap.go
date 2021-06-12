@@ -1,4 +1,4 @@
-package main
+package heap
 
 import (
 	"fmt"
@@ -57,15 +57,20 @@ func (m *MaxHeap) sink() {
 		if childIndex+1 < len(m.Element) && m.Element[childIndex+1] > m.Element[childIndex] {
 			childIndex++
 		}
+		if temp > m.Element[childIndex] {
+			break
+		}
+		m.Element[fatherIndex] = m.Element[childIndex]
+		fatherIndex = childIndex
+		childIndex = 2*childIndex + 1
 	}
+	m.Element[fatherIndex] = temp
 }
-func main() {
-	heap := NewMax()
-	heap.Insert(3)
-	heap.Insert(2)
-	heap.Insert(4)
-	heap.Insert(1)
-	heap.Insert(5)
-	fmt.Println(heap.Element)
-	fmt.Println(heap.Max())
+
+func (m *MaxHeap) DeleteMax() int {
+	// 将最后一个节点的值挂到根节点上
+	root := m.Element[0]
+	m.Element[0] = m.Element[len(m.Element)-1]
+	m.sink()
+	return root
 }
