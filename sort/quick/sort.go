@@ -18,14 +18,14 @@ func partition(arr []float64, startIndex, endIndex int) int {
 	left, right := startIndex, endIndex
 	pivot := arr[startIndex]
 	for left != right {
-		for left < right && arr[right] > pivot {
+		for left < right && arr[right] >= pivot {
 			right--
 		}
-		for left < right && arr[left] < pivot {
+		for left < right && arr[left] <= pivot {
 			left++
 		}
 		if left < right {
-			arr[left] = arr[right]
+			arr[left], arr[right] = arr[right], arr[left]
 		}
 	}
 	arr[startIndex] = arr[left]
