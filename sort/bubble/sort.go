@@ -2,8 +2,10 @@ package bubble
 
 import "github.com/higker/ds/sort"
 
-type moreThan struct{}
-type lessThan struct{}
+type (
+	moreThan struct{}
+	lessThan struct{}
+)
 
 func (m *moreThan) Sort(arr []float64) {
 	for i := 0; i < len(arr)-1; i++ {
