@@ -11,7 +11,6 @@ func mergeSort(arr []float64) []float64 {
 	if length < 2 {
 		return arr
 	}
-	middle := length / 2
 	return func(left, right []float64) []float64 {
 		var result []float64
 
@@ -33,5 +32,5 @@ func mergeSort(arr []float64) []float64 {
 		}
 
 		return result
-	}(mergeSort(arr[:middle]), mergeSort(arr[middle:]))
+	}(mergeSort(arr[:length/2]), mergeSort(arr[length/2:]))
 }
