@@ -1,6 +1,8 @@
 package insertion
 
-import "github.com/higker/ds/sort"
+import (
+	"github.com/higker/ds/sort"
+)
 
 type moreThan struct{}
 
