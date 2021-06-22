@@ -1,9 +1,17 @@
 package merge
 
+import (
+	"github.com/higker/ds/sort"
+)
+
 type moreThan struct{}
 
 func (m *moreThan) Sort(arr []float64) {
-	mergeSort(arr)
+	copy(arr, mergeSort(arr))
+}
+
+func New() sort.Sorting {
+	return &moreThan{}
 }
 
 func mergeSort(arr []float64) []float64 {
@@ -11,26 +19,30 @@ func mergeSort(arr []float64) []float64 {
 	if length < 2 {
 		return arr
 	}
-	return func(left, right []float64) []float64 {
-		var result []float64
+	middle := length / 2
+	left := arr[:middle]
+	right := arr[middle:]
+	return merge(mergeSort(left), mergeSort(right))
+}
 
-		for len(left) != 0 && len(right) != 0 {
-			if left[0] <= right[0] {
-				result = append(result, left[0])
-				left = left[1:]
-			} else {
-				result = append(result, right[0])
-				right = right[1:]
-			}
-		}
+func merge(left, right []float64) []float64 {
+	var result []float64
 
-		if len(left) != 0 {
-			result = append(result, left...)
+	for len(left) != 0 && len(right) != 0 {
+		if left[0] <= right[0] {
+			result = append(result, left[0])
+			left = left[1:]
+		} else {
+			result = append(result, right[0])
+			right = right[1:]
 		}
-		if len(right) != 0 {
-			result = append(result, right...)
-		}
+	}
 
-		return result
-	}(mergeSort(arr[:length/2]), mergeSort(arr[length/2:]))
+	if len(left) != 0 {
+		result = append(result, left...)
+	}
+	if len(right) != 0 {
+		result = append(result, right...)
+	}
+	return result
 }
