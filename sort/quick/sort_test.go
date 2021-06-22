@@ -1,8 +1,9 @@
 package quick_test
 
 import (
-	"github.com/higker/ds/sort/quick"
 	"testing"
+
+	"github.com/higker/ds/sort/quick"
 )
 
 func TestQuickSort(t *testing.T) {
