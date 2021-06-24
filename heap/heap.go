@@ -57,12 +57,15 @@ func (h *Heap) Build() {
 }
 
 func (h *Heap) MoveMin() int {
-	max := h.tree[0]
-	h.tree = h.tree[1:]
-	h.size--
-	h.Build()
-	h.Sort()
-	return max
+
+	defer func() {
+		h.tree = h.tree[1:]
+		h.size--
+		h.Build()
+		h.Sort()
+	}()
+
+	return h.tree[0]
 }
 
 func (h *Heap) Heapify(index int) {
