@@ -79,5 +79,5 @@ func (h *Heap) Insert(v int) {
 }
 
 func (h *Heap) Size() int {
-	return len(h.tree)
+	return len(h)
 }
