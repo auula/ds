@@ -71,3 +71,13 @@ func (h *Heap) MoveMin() int {
 func (h *Heap) Heapify(index int) {
 	heapify(h.tree, h.size, index)
 }
+
+func (h *Heap) Insert(v int) {
+	h.tree = append(h.tree, v)
+	h.size = len(h.tree)
+	h.Build()
+}
+
+func (h *Heap) Size() int {
+	return len(h.tree)
+}
