@@ -1,8 +1,6 @@
 package queue
 
 import (
-	"fmt"
-
 	"github.com/higker/ds/heap"
 )
 
@@ -11,25 +9,25 @@ type PriorityQueue struct {
 	size int
 }
 
-func Priority(n int) *PriorityQueue {
-	heap := heap.Build(make([]int, 0, n))
+func Priority() *PriorityQueue {
+	heap := heap.Build(make([]int, 0))
 	return &PriorityQueue{
 		heap: heap,
-		size: n,
+		size: 0,
 	}
 }
 
-func (pq *PriorityQueue) EnQueue(v int) error {
-	if pq.heap.Size() > pq.size {
-		return fmt.Errorf("priority queue full, priority size is %d", pq.size)
-	}
+func (pq *PriorityQueue) EnQueue(v int) {
 	pq.heap.Insert(v)
 	pq.size++
 	pq.heap.Sort()
-	return nil
 }
 
 func (pq *PriorityQueue) DeQueue() int {
 	pq.size--
 	return pq.heap.MoveMin()
+}
+
+func (pq *PriorityQueue) Size() int {
+	return pq.size
 }
