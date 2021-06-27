@@ -32,10 +32,10 @@ func sorting(arr []int) []int {
 	for i := 1; i < len(arr); i++ {
 		countArrays[i] += countArrays[i-1]
 	}
-
 	sortedArrays := make([]int, len(arr))
 	// 排序
 	for i := len(arr) - 1; i >= 0; i-- {
+		// 拿到countArrays每次减一操作
 		sortedArrays[countArrays[arr[i]-min]-1] = arr[i]
 		countArrays[arr[i]-min]--
 	}
