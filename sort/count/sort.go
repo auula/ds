@@ -1,5 +1,6 @@
 package count
 
+// 量大但是范围小
 func Sort(arr []int) {
 	copy(arr, sorting(arr))
 }
@@ -13,23 +14,30 @@ func sorting(arr []int) []int {
 		if arr[i] > max {
 			max = arr[i]
 		}
-		if arr[i] > min {
+		if arr[i] < min {
 			min = arr[i]
 		}
 	}
+
 	// 统计出现的次数 max-min+1
-	countArrays := make([]int, max-min+1)
+	different := max - min
+
+	countArrays := make([]int, different+1)
 	for i := 0; i < len(arr); i++ {
-		countArrays[arr[i]]++
+		// min 偏移量
+		countArrays[arr[i]-min]++
 	}
+
+	// 整理变形 加上之前的前面下标的值
+	for i := 1; i < len(arr); i++ {
+		countArrays[i] += countArrays[i-1]
+	}
+
 	sortedArrays := make([]int, len(arr))
 	// 排序
-	index := 0
-	for i := 0; i < len(countArrays); i++ {
-		for j := 0; j < countArrays[i]; j++ {
-			sortedArrays[index] = i
-			index += 1
-		}
+	for i := len(arr) - 1; i >= 0; i-- {
+		sortedArrays[countArrays[arr[i]-min]-1] = arr[i]
+		countArrays[arr[i]-min]--
 	}
 	return sortedArrays
 }
